@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyle Langford - Developer Stats</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -106,8 +105,15 @@
         .skill-name { font-size: 0.875rem; }
         .skill-hours { font-size: 0.75rem; color: #64748b; }
 
-        /* Chart container */
-        .chart-container { height: 200px; }
+        /* Screenshot */
+        .screenshot-container {
+            margin: 2rem 0;
+        }
+        .screenshot-container img {
+            width: 100%;
+            border-radius: 1rem;
+            border: 1px solid #334155;
+        }
 
         /* Ticker */
         .ticker {
@@ -197,20 +203,9 @@
             <div class="ticker-item"><span class="ticker-value">1,293</span> Hours in 2022</div>
         </div>
 
-        <!-- Charts Row -->
-        <div class="grid-2">
-            <div class="card">
-                <div class="card-title">Hours by Year</div>
-                <div class="chart-container">
-                    <canvas id="yearlyChart"></canvas>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">Top Clients by Hours</div>
-                <div class="chart-container">
-                    <canvas id="clientsChart"></canvas>
-                </div>
-            </div>
+        <!-- Portfolio Screenshot -->
+        <div class="screenshot-container">
+            <img src="portfolio-screenshot.png" alt="Portfolio Preview - What I Do, Select Clients, Featured Work">
         </div>
 
         <!-- Industry Breakdown -->
@@ -403,52 +398,5 @@
     <footer>
         Stats compiled from 14 years of detailed time tracking data (2012-2026)
     </footer>
-
-    <script>
-        // Yearly hours chart
-        new Chart(document.getElementById('yearlyChart'), {
-            type: 'bar',
-            data: {
-                labels: ['12','13','14','15','16','17','18','19','20','21','22','23','24','25','26'],
-                datasets: [{
-                    data: [1103,1007,933,971,808,915,935,921,1243,1214,1293,1269,1270,1259,940],
-                    backgroundColor: '#4ade80',
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { display: false },
-                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
-                }
-            }
-        });
-
-        // Top clients chart
-        new Chart(document.getElementById('clientsChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Linkwell','Enel','Dartmouth','Imaginatik','Sumer','Princeton','Bally','Giggle'],
-                datasets: [{
-                    data: [5605,1349,997,992,880,401,370,349],
-                    backgroundColor: ['#4ade80','#38bdf8','#a78bfa','#fbbf24','#f472b6','#4ade80','#38bdf8','#a78bfa'],
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { display: false },
-                    y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 11 } } }
-                }
-            }
-        });
-    </script>
 </body>
 </html>
