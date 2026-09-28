@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Report Dashboard - Christian</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8; font-weight: 500; }
+        h3 { font-size: 1rem; margin-bottom: 0.75rem; color: #cbd5e1; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #1e293b;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #38bdf8;
+        }
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .section { margin-bottom: 2rem; }
+        .section-title {
+            font-size: 1.5rem;
+            color: #f8fafc;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .chart-container { height: 300px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 500; }
+        .text-right { text-align: right; }
+        tr:hover { background: #334155; }
+        .bar { background: #334155; border-radius: 4px; height: 6px; margin-top: 4px; }
+        .bar-fill { background: linear-gradient(90deg, #38bdf8, #818cf8); height: 100%; border-radius: 4px; }
+        .insight-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .insight-title {
+            color: #7dd3fc;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+        .insight-text {
+            color: #e2e8f0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <h1>Time Report Dashboard</h1>
+    <h2>Christian Gonzalez | Jan 2020 - Sep 2026</h2>
+
+    <!-- Summary Stats -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value">5,666</div>
+            <div class="stat-label">Total Hours</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">3,055</div>
+            <div class="stat-label">Time Entries</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">6.7</div>
+            <div class="stat-label">Years of Data</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">1.85</div>
+            <div class="stat-label">Avg Entry Size (hrs)</div>
+        </div>
+    </div>
+
+    <!-- Key Insights -->
+    <div class="section">
+        <div class="section-title">Key Insights</div>
+        <div class="grid-3">
+            <div class="insight-box">
+                <div class="insight-title">Columbia Dominates Recent Years</div>
+                <div class="insight-text">Columbia University became top client from 2023-2026, accounting for 1,475 hours total (26% of all time).</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">Consistent Mid-Week Focus</div>
+                <div class="insight-text">Tue-Thu are busiest days (21-22% each). Weekend work is minimal (<1%).</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">Maintenance-Heavy Workflow</div>
+                <div class="insight-text">Maintain work (updates, fixes) edges out Implementation (2,283 vs 2,162 hrs). QA/Testing is significant at 1,633 hrs.</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">Deep Work Sessions</div>
+                <div class="insight-text">69% of sessions are 1-4 hours. Only 4% are quick (<30min) tasks.</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">Drupal Primary Stack</div>
+                <div class="insight-text">Drupal work totals 2,361 hours (42% of time). WordPress growing recently at 434 hours.</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">2023 Gap Year</div>
+                <div class="insight-text">Only 251 hours logged in 2023 vs 900-1,100 hrs other years. Recovered in 2024-2025.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hours Over Time -->
+    <div class="section">
+        <div class="section-title">Hours Over Time</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Yearly Hours</h3>
+                <div class="chart-container">
+                    <canvas id="yearlyChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Seasonal Pattern (All Years)</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Work Patterns -->
+    <div class="section">
+        <div class="section-title">Work Patterns</div>
+        <div class="grid-3">
+            <div class="card">
+                <h3>Day of Week</h3>
+                <div class="chart-container">
+                    <canvas id="dayChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Entry Size Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="entrySizeChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Category Breakdown</h3>
+                <div class="chart-container">
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="grid-2" style="margin-top: 1.5rem;">
+            <div class="card">
+                <h3>Avg Session Length</h3>
+                <div id="avgSessionChart"></div>
+            </div>
+            <div class="card">
+                <h3>Quick Tasks (avg < 1.5 hr)</h3>
+                <table id="quickTasksTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="section">
+        <div class="section-title">Tech Stack</div>
+        <div class="grid-3">
+            <div class="card">
+                <h3>Tech Stack Hours</h3>
+                <table id="techTable"></table>
+            </div>
+            <div class="card">
+                <h3>Technology Trends by Year</h3>
+                <div class="chart-container">
+                    <canvas id="techTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keywords -->
+    <div class="section">
+        <div class="section-title">Top Keywords & Actions</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Most Common Keywords</h3>
+                <div id="keywordBubbles" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; align-items: center; padding: 1rem;"></div>
+            </div>
+            <div class="card">
+                <h3>Work Types</h3>
+                <div id="workTypesChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clients & Projects -->
+    <div class="section">
+        <div class="section-title">Clients & Projects</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Top Companies (All Time)</h3>
+                <table id="companiesTable"></table>
+            </div>
+            <div class="card">
+                <h3>Top Projects (All Time)</h3>
+                <table id="projectsTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Client by Year -->
+    <div class="section">
+        <div class="grid-2">
+            <div class="card">
+                <h3>Top Client by Year</h3>
+                <table id="topClientTable"></table>
+            </div>
+            <div class="card">
+                <h3>Client Diversity by Year</h3>
+                <div class="chart-container"><canvas id="clientDiversityChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chartColors = { text: '#94a3b8', grid: '#334155' };
+
+        const data = {
+            yearly: [
+                {year: "2020", hours: 684.0, entries: 354},
+                {year: "2021", hours: 972.5, entries: 560},
+                {year: "2022", hours: 1110.0, entries: 654},
+                {year: "2023", hours: 250.5, entries: 166},
+                {year: "2024", hours: 981.8, entries: 554},
+                {year: "2025", hours: 1025.0, entries: 479},
+                {year: "2026", hours: 642.3, entries: 288}
+            ],
+            monthly: [
+                {month: "Jan", hours: 408.8}, {month: "Feb", hours: 473.0},
+                {month: "Mar", hours: 478.2}, {month: "Apr", hours: 537.0},
+                {month: "May", hours: 478.3}, {month: "Jun", hours: 461.5},
+                {month: "Jul", hours: 500.8}, {month: "Aug", hours: 474.8},
+                {month: "Sep", hours: 487.3}, {month: "Oct", hours: 481.0},
+                {month: "Nov", hours: 500.3}, {month: "Dec", hours: 385.3}
+            ],
+            dayOfWeek: [
+                {day: "Sun", hours: 19.0}, {day: "Mon", hours: 983.5},
+                {day: "Tue", hours: 1207.8}, {day: "Wed", hours: 1179.7},
+                {day: "Thu", hours: 1226.0}, {day: "Fri", hours: 1041.8},
+                {day: "Sat", hours: 8.3}
+            ],
+            entrySize: [
+                {size: "<30min", count: 129, hours: 32.3},
+                {size: "30min-1h", count: 656, hours: 397.7},
+                {size: "1-2h", count: 968, hours: 1301.0},
+                {size: "2-4h", count: 1035, hours: 2658.0},
+                {size: "4h+", count: 267, hours: 1277.0}
+            ],
+            categories: [
+                {name: "Other", hours: 2265, entries: 1463},
+                {name: "QA/Testing", hours: 1633, entries: 778},
+                {name: "Development", hours: 842, entries: 389},
+                {name: "Design", hours: 268, entries: 117},
+                {name: "Migration/Upgrade", hours: 189, entries: 80},
+                {name: "Frontend/Styling", hours: 169, entries: 59},
+                {name: "Meetings", hours: 124, entries: 71},
+                {name: "Content", hours: 108, entries: 55},
+                {name: "Review/Audit", hours: 69, entries: 43}
+            ],
+            tech: [
+                {name: "Drupal", hours: 2360.7, entries: 1215},
+                {name: "WordPress", hours: 433.5, entries: 185}
+            ],
+            techTrend: {
+                years: ["2020","2021","2022","2023","2024","2025","2026"],
+                drupal: [171.3,560.2,170.8,77.8,446.5,501.0,433.3],
+                wordpress: [12.0,2.8,20.3,16.3,136.8,237.3,41.5]
+            },
+            keywords: [
+                {word: "updates", count: 515, hours: 994},
+                {word: "fix", count: 480, hours: 964},
+                {word: "dev", count: 343, hours: 853},
+                {word: "testing", count: 340, hours: 786},
+                {word: "styling", count: 291, hours: 727},
+                {word: "design", count: 161, hours: 373},
+                {word: "mobile", count: 125, hours: 281},
+                {word: "content", count: 96, hours: 227},
+                {word: "review", count: 86, hours: 152},
+                {word: "migration", count: 31, hours: 57}
+            ],
+            workTypes: [
+                {name: "Maintain", hours: 2283, desc: "update, fix, add", color: "#fbbf24"},
+                {name: "Implement", hours: 2162, desc: "create, build, test", color: "#4ade80"},
+                {name: "Strategy", hours: 565, desc: "review, design, meetings", color: "#818cf8"}
+            ],
+            avgSession: [
+                {type: "Overall", avg: 1.85, sessions: 3055, color: "#94a3b8"},
+                {type: "Implement", avg: 2.29, sessions: 693, color: "#4ade80"},
+                {type: "Strategy", avg: 2.03, sessions: 264, color: "#818cf8"},
+                {type: "Maintain", avg: 1.92, sessions: 1222, color: "#fbbf24"}
+            ],
+            quickTasks: [
+                {task: "Misc. Support", avg: 1.41, count: 242, hours: 340.5},
+                {task: "Misc site requests", avg: 1.18, count: 73, hours: 86.3},
+                {task: "Feature Article template", avg: 1.32, count: 20, hours: 26.5},
+                {task: "Account/Project Management", avg: 1.23, count: 14, hours: 17.3},
+                {task: "Meetings & Phone Calls", avg: 0.88, count: 13, hours: 11.5}
+            ],
+            companies: [
+                {name: "Columbia University", hours: 1475.2, entries: 732},
+                {name: "Non Profit Quarterly", hours: 964.8, entries: 566},
+                {name: "Lexia Learning", hours: 761.0, entries: 426},
+                {name: "Penn Stater", hours: 572.3, entries: 295},
+                {name: "Rollworks", hours: 533.5, entries: 273},
+                {name: "Vicinity Energy", hours: 247.8, entries: 116},
+                {name: "Dartmouth College", hours: 238.8, entries: 136},
+                {name: "Safewaze", hours: 194.5, entries: 110},
+                {name: "CSMi", hours: 115.8, entries: 52},
+                {name: "Mental", hours: 86.5, entries: 62}
+            ],
+            projects: [
+                {name: "Columbia Magazine", company: "Columbia", hours: 943.2},
+                {name: "Penn Stater Website", company: "Penn Stater", hours: 572.3},
+                {name: "Columbia Giving", company: "Columbia", hours: 457.3},
+                {name: "Buyer Builder", company: "Rollworks", hours: 198.0},
+                {name: "Website UX/Design", company: "Safewaze", hours: 152.3},
+                {name: "Leading Edge Shopify->WP", company: "NPQ", hours: 144.5},
+                {name: "NPQ Site Design Update", company: "NPQ", hours: 126.3},
+                {name: "D10 & Site Design", company: "Dartmouth", hours: 104.8},
+                {name: "Tactical Marketing", company: "CSMi", hours: 96.3},
+                {name: "VSL", company: "Lexia", hours: 91.0}
+            ],
+            topClientByYear: [
+                {year: "2020", client: "Lexia Learning", hours: 270.5},
+                {year: "2021", client: "Penn Stater", hours: 309.5},
+                {year: "2022", client: "Rollworks", hours: 266.8},
+                {year: "2023", client: "Columbia University", hours: 64.8},
+                {year: "2024", client: "Columbia University", hours: 284.0},
+                {year: "2025", client: "Columbia University", hours: 368.5},
+                {year: "2026", client: "Columbia University", hours: 315.8}
+            ],
+            clientDiversity: [
+                {year: "2020", clients: 9, hours: 684.0},
+                {year: "2021", clients: 11, hours: 972.5},
+                {year: "2022", clients: 15, hours: 1110.0},
+                {year: "2023", clients: 11, hours: 250.5},
+                {year: "2024", clients: 15, hours: 981.8},
+                {year: "2025", clients: 12, hours: 1025.0},
+                {year: "2026", clients: 12, hours: 642.3}
+            ]
+        };
+
+        // Yearly Chart
+        new Chart(document.getElementById('yearlyChart'), {
+            type: 'bar',
+            data: {
+                labels: data.yearly.map(y => y.year),
+                datasets: [{
+                    label: 'Hours',
+                    data: data.yearly.map(y => y.hours),
+                    backgroundColor: '#38bdf8',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Monthly Chart
+        new Chart(document.getElementById('monthlyChart'), {
+            type: 'line',
+            data: {
+                labels: data.monthly.map(m => m.month),
+                datasets: [{
+                    label: 'Hours',
+                    data: data.monthly.map(m => m.hours),
+                    borderColor: '#818cf8',
+                    backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Day of Week Chart
+        new Chart(document.getElementById('dayChart'), {
+            type: 'bar',
+            data: {
+                labels: data.dayOfWeek.map(d => d.day),
+                datasets: [{
+                    label: 'Hours',
+                    data: data.dayOfWeek.map(d => d.hours),
+                    backgroundColor: data.dayOfWeek.map(d => 
+                        ['Sat', 'Sun'].includes(d.day) ? '#64748b' : '#4ade80'
+                    ),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Entry Size Chart
+        new Chart(document.getElementById('entrySizeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.entrySize.map(e => e.size),
+                datasets: [{
+                    data: data.entrySize.map(e => e.count),
+                    backgroundColor: ['#64748b', '#94a3b8', '#38bdf8', '#818cf8', '#a78bfa']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { color: chartColors.text, boxWidth: 12 } } }
+            }
+        });
+
+        // Categories Chart
+        new Chart(document.getElementById('categoriesChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.categories.map(c => c.name),
+                datasets: [{
+                    data: data.categories.map(c => c.hours),
+                    backgroundColor: ['#475569', '#4ade80', '#38bdf8', '#818cf8', '#f97316', '#fbbf24', '#fb7185', '#2dd4bf', '#a78bfa']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { color: chartColors.text, boxWidth: 10, font: { size: 11 } } } }
+            }
+        });
+
+        // Tech Table
+        document.getElementById('techTable').innerHTML = `
+            <tr><th>Technology</th><th class="text-right">Hours</th><th class="text-right">Entries</th></tr>
+            ${data.tech.map(t => `
+                <tr>
+                    <td>${t.name}</td>
+                    <td class="text-right">${t.hours.toLocaleString()}</td>
+                    <td class="text-right">${t.entries}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Tech Trend Chart
+        new Chart(document.getElementById('techTrendChart'), {
+            type: 'line',
+            data: {
+                labels: data.techTrend.years,
+                datasets: [
+                    { label: 'Drupal', data: data.techTrend.drupal, borderColor: '#38bdf8', tension: 0.3, pointRadius: 2 },
+                    { label: 'WordPress', data: data.techTrend.wordpress, borderColor: '#818cf8', tension: 0.3, pointRadius: 2 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: chartColors.text } } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Keyword Bubbles
+        const maxHours = Math.max(...data.keywords.map(k => k.hours));
+        const minSize = 50, maxSize = 120;
+        const colors = ['#38bdf8', '#818cf8', '#a78bfa', '#4ade80', '#fbbf24', '#fb7185', '#2dd4bf', '#f472b6', '#67e8f9', '#c4b5fd'];
+        document.getElementById('keywordBubbles').innerHTML = data.keywords.map((k, i) => {
+            const size = minSize + (k.hours / maxHours) * (maxSize - minSize);
+            const color = colors[i % colors.length];
+            return `<div style="
+                width: ${size}px; height: ${size}px; border-radius: 50%;
+                background: ${color}22; border: 2px solid ${color};
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                text-align: center; padding: 0.25rem; cursor: default;
+            " title="${k.word}: ${k.hours} hours (${k.count} entries)">
+                <span style="font-size: ${Math.max(10, size/8)}px; font-weight: 600; color: ${color};">${k.word}</span>
+                <span style="font-size: ${Math.max(9, size/10)}px; color: #94a3b8;">${k.hours}h</span>
+            </div>`;
+        }).join('');
+
+        // Work Types Chart
+        const totalWorkTypeHours = data.workTypes.reduce((sum, w) => sum + w.hours, 0);
+        document.getElementById('workTypesChart').innerHTML = data.workTypes.map(w => {
+            const pct = (w.hours / totalWorkTypeHours * 100).toFixed(1);
+            return `<div style="margin-bottom: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 600; color: ${w.color};">${w.name}</span>
+                    <span style="color: #e2e8f0;">${w.hours.toLocaleString()} hrs (${pct}%)</span>
+                </div>
+                <div style="background: #1e293b; border-radius: 0.5rem; height: 1.5rem; overflow: hidden;">
+                    <div style="background: ${w.color}; height: 100%; width: ${pct}%; border-radius: 0.5rem;"></div>
+                </div>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;">${w.desc}</div>
+            </div>`;
+        }).join('');
+
+        // Avg Session Length
+        const maxAvg = Math.max(...data.avgSession.map(s => s.avg));
+        document.getElementById('avgSessionChart').innerHTML = data.avgSession.map(s => {
+            const barWidth = (s.avg / maxAvg * 100).toFixed(0);
+            return `<div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                    <span style="color: ${s.color}; font-weight: 500;">${s.type}</span>
+                    <span style="color: #e2e8f0; font-weight: 600;">${s.avg} hrs</span>
+                </div>
+                <div style="background: #1e293b; border-radius: 0.25rem; height: 0.75rem; overflow: hidden;">
+                    <div style="background: ${s.color}; height: 100%; width: ${barWidth}%; border-radius: 0.25rem;"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.2rem;">${s.sessions.toLocaleString()} sessions</div>
+            </div>`;
+        }).join('');
+
+        // Quick Tasks Table
+        document.getElementById('quickTasksTable').innerHTML = `
+            <tr><th>Task</th><th class="text-right">Avg</th><th class="text-right">Count</th></tr>
+            ${data.quickTasks.map(t => `
+                <tr>
+                    <td>${t.task}</td>
+                    <td class="text-right">${t.avg}h</td>
+                    <td class="text-right">${t.count}x</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Companies Table
+        const maxCompanyHours = Math.max(...data.companies.map(c => c.hours));
+        document.getElementById('companiesTable').innerHTML = `
+            <tr><th>Company</th><th class="text-right">Hours</th></tr>
+            ${data.companies.map(c => `
+                <tr>
+                    <td>
+                        ${c.name}
+                        <div class="bar"><div class="bar-fill" style="width: ${(c.hours / maxCompanyHours * 100)}%"></div></div>
+                    </td>
+                    <td class="text-right">${c.hours.toLocaleString()}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Projects Table
+        const maxProjectHours = Math.max(...data.projects.map(p => p.hours));
+        document.getElementById('projectsTable').innerHTML = `
+            <tr><th>Project</th><th class="text-right">Hours</th></tr>
+            ${data.projects.map(p => `
+                <tr>
+                    <td>
+                        <span style="color: #64748b;">${p.company} -</span> ${p.name}
+                        <div class="bar"><div class="bar-fill" style="width: ${(p.hours / maxProjectHours * 100)}%"></div></div>
+                    </td>
+                    <td class="text-right">${p.hours.toLocaleString()}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Top Client by Year Table
+        document.getElementById('topClientTable').innerHTML = `
+            <tr><th>Year</th><th>Top Client</th><th class="text-right">Hours</th></tr>
+            ${data.topClientByYear.map(t => `
+                <tr>
+                    <td>${t.year}</td>
+                    <td>${t.client}</td>
+                    <td class="text-right">${t.hours}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Client Diversity Chart
+        new Chart(document.getElementById('clientDiversityChart'), {
+            type: 'bar',
+            data: {
+                labels: data.clientDiversity.map(d => d.year),
+                datasets: [{
+                    label: 'Clients',
+                    data: data.clientDiversity.map(d => d.clients),
+                    backgroundColor: '#38bdf8',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Report Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8; font-weight: 500; }
+        h3 { font-size: 1rem; margin-bottom: 0.75rem; color: #cbd5e1; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #1e293b;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #38bdf8;
+        }
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .section {
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            color: #f8fafc;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .chart-container { height: 300px; }
+        .chart-tall { height: 400px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        th, td {
+            padding: 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th { color: #94a3b8; font-weight: 500; }
+        .text-right { text-align: right; }
+        tr:hover { background: #334155; }
+        .bar {
+            background: #334155;
+            border-radius: 4px;
+            height: 6px;
+            margin-top: 4px;
+        }
+        .bar-fill {
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            height: 100%;
+            border-radius: 4px;
+        }
+        .insight-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .insight-title {
+            color: #7dd3fc;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .insight-text {
+            color: #e2e8f0;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .trend-up { color: #4ade80; }
+        .trend-down { color: #f87171; }
+        .trend-neutral { color: #94a3b8; }
+        .mini-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 40px;
+        }
+        .mini-bar {
+            flex: 1;
+            background: #38bdf8;
+            border-radius: 2px 2px 0 0;
+            min-width: 4px;
+        }
+        canvas { max-width: 100%; }
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .tab {
+            padding: 0.5rem 1rem;
+            background: #334155;
+            border: none;
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .tab.active {
+            background: #38bdf8;
+            color: #0f172a;
+        }
+        .tab:hover:not(.active) {
+            background: #475569;
+        }
+        .career-timeline {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+        .career-role {
+            padding: 1rem 1.25rem;
+            background: #1e293b;
+            border-right: 1px solid #334155;
+            flex: 1;
+            position: relative;
+        }
+        .career-role:last-child {
+            border-right: none;
+        }
+        .career-role.current {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1e293b 100%);
+            border-top: 2px solid #38bdf8;
+        }
+        .role-title {
+            font-weight: 600;
+            color: #f8fafc;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+        .role-dates {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .role-hours {
+            color: #38bdf8;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <h1>Time Report Dashboard</h1>
+    <h2>Kyle Langford | Brunello, Inc. | Mar 2012 - Present</h2>
+
+    <!-- Career Timeline -->
+    <div class="career-timeline">
+        <div class="career-role">
+            <div class="role-title">Interactive Designer</div>
+            <div class="role-dates">Mar 2012 - Jan 2018 (5 yrs 11 mos)</div>
+            <div class="role-hours">5,736 hrs</div>
+        </div>
+        <div class="career-role">
+            <div class="role-title">Senior Frontend Developer</div>
+            <div class="role-dates">Jan 2018 - Jan 2025 (7 yrs)</div>
+            <div class="role-hours">8,144 hrs</div>
+        </div>
+        <div class="career-role current">
+            <div class="role-title">Tech Lead</div>
+            <div class="role-dates">Jan 2025 - Present</div>
+            <div class="role-hours">2,199 hrs (YTD)</div>
+        </div>
+    </div>
+
+    <!-- Key Stats -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value">16,079</div>
+            <div class="stat-label">Total Hours</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">8,160</div>
+            <div class="stat-label">Time Entries</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">14.5</div>
+            <div class="stat-label">Years Tracked</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">1,105</div>
+            <div class="stat-label">Avg Hours/Year</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">92</div>
+            <div class="stat-label">Avg Hours/Month</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">2.0</div>
+            <div class="stat-label">Avg Entry Size (hrs)</div>
+        </div>
+    </div>
+
+    <!-- Key Insights Section -->
+    <div class="section">
+        <div class="section-title">Key Insights</div>
+        <div class="grid-3">
+            <div class="insight-box">
+                <div class="insight-title">📈 Hours Increased 35% in 2020</div>
+                <div class="insight-text">Jumped from ~900 hrs/year (2014-2019) to ~1,250 hrs/year (2020-2025). Consistent output for 6 years straight.</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">📅 Mid-Week Peak</div>
+                <div class="insight-text">Tuesday-Wednesday are busiest (22% each). Friday drops to 15%. Weekends are <1% of total hours.</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">⚠️ Deep Work Declining</div>
+                <div class="insight-text">Deep work (2+ hr sessions) dropped from 97% in 2012 to 63% in 2026. Fragmentation increasing.</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">📞 Meeting Creep (then recovery)</div>
+                <div class="insight-text">Meeting time grew from 3% (2012) → 22% (2023-24) → back down to 12% (2025-26).</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">🏢 Client Evolution</div>
+                <div class="insight-text">Linkwell Health dominated 2013-2022 (5,605 hrs). Shifted to SumerSports (2023-24) → Dartmouth (2025-26).</div>
+            </div>
+            <div class="insight-box">
+                <div class="insight-title">🤖 AI Adoption in 2026</div>
+                <div class="insight-text">AI/Claude/MCP mentions appearing in 2026 with 26 hours logged. New workflow emerging.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hours Over Time -->
+    <div class="section">
+        <div class="section-title">Hours Over Time</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Yearly Hours</h3>
+                <div class="chart-container">
+                    <canvas id="yearlyChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Monthly Trend (All Time)</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Work Patterns -->
+    <div class="section">
+        <div class="section-title">Work Patterns</div>
+        <div class="grid-3">
+            <div class="card">
+                <h3>Day of Week</h3>
+                <div class="chart-container">
+                    <canvas id="dayOfWeekChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Entry Size Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="entrySizeChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Seasonal Pattern (All Years)</h3>
+                <div class="chart-container">
+                    <canvas id="seasonalChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Work Categories -->
+    <div class="section">
+        <div class="section-title">Work Categories</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Hours by Work Type</h3>
+                <div class="chart-container">
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Category Breakdown</h3>
+                <table id="categoriesTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trends Over Time -->
+    <div class="section">
+        <div class="section-title">Trends Over Time</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Deep Work vs Fragmented Work</h3>
+                <div class="chart-container">
+                    <canvas id="deepWorkChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Meeting Time % by Year</h3>
+                <div class="chart-container">
+                    <canvas id="meetingTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Analysis -->
+    <div class="section">
+        <div class="section-title">Task Analysis</div>
+        <div class="grid-3">
+            <div class="card">
+                <h3>Todo Categories</h3>
+                <div class="chart-container">
+                    <canvas id="todoCategoriesChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Work Mix by Role</h3>
+                <table id="workMixTable"></table>
+            </div>
+            <div class="card">
+                <h3>Task Complexity</h3>
+                <table id="taskComplexityTable"></table>
+            </div>
+        </div>
+        <div class="grid-2" style="margin-top: 1.5rem;">
+            <div class="card">
+                <h3>Avg Session Length</h3>
+                <div id="avgSessionChart"></div>
+            </div>
+            <div class="card">
+                <h3>Quick Tasks (avg < 1 hr)</h3>
+                <table id="quickTasksTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technology -->
+    <div class="section">
+        <div class="section-title">Technology & Tools</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Tech Stack Hours</h3>
+                <table id="techTable"></table>
+            </div>
+            <div class="card">
+                <h3>Technology Trends by Year</h3>
+                <div class="chart-container">
+                    <canvas id="techTrendChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Work Type Trends by Year</h3>
+                <div class="chart-container">
+                    <canvas id="keywordTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keywords -->
+    <div class="section">
+        <div class="section-title">Top Keywords & Actions</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Most Common Keywords</h3>
+                <div id="keywordBubbles" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; align-items: center; padding: 1rem;"></div>
+            </div>
+            <div class="card">
+                <h3>Work Types</h3>
+                <div id="workTypesChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clients & Projects -->
+    <div class="section">
+        <div class="section-title">Clients & Projects</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Top Companies (All Time)</h3>
+                <table id="companiesTable"></table>
+            </div>
+            <div class="card">
+                <h3>Top Projects (All Time)</h3>
+                <table id="projectsTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Client by Year -->
+    <div class="section">
+        <div class="grid-2">
+            <div class="card">
+                <h3>Top Client by Year</h3>
+                <table id="topClientTable"></table>
+            </div>
+            <div class="card">
+                <h3>Client Diversity by Year</h3>
+                <div class="chart-container"><canvas id="clientDiversityChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const data = {
+            yearly: [
+                {year: "2012", hours: 1102.85, entries: 245},
+                {year: "2013", hours: 1006.6, entries: 280},
+                {year: "2014", hours: 933.35, entries: 470},
+                {year: "2015", hours: 970.8, entries: 314},
+                {year: "2016", hours: 807.52, entries: 377},
+                {year: "2017", hours: 914.85, entries: 534},
+                {year: "2018", hours: 934.95, entries: 491},
+                {year: "2019", hours: 921.15, entries: 484},
+                {year: "2020", hours: 1243.0, entries: 683},
+                {year: "2021", hours: 1213.5, entries: 735},
+                {year: "2022", hours: 1293.0, entries: 671},
+                {year: "2023", hours: 1268.75, entries: 819},
+                {year: "2024", hours: 1269.5, entries: 761},
+                {year: "2025", hours: 1258.75, entries: 690},
+                {year: "2026", hours: 940.25, entries: 606}
+            ],
+            monthly: [{"month": "2012-03", "hours": 47.25}, {"month": "2012-04", "hours": 76.75}, {"month": "2012-05", "hours": 137.15}, {"month": "2012-06", "hours": 93.25}, {"month": "2012-07", "hours": 130.0}, {"month": "2012-08", "hours": 152.0}, {"month": "2012-09", "hours": 139.5}, {"month": "2012-10", "hours": 129.5}, {"month": "2012-11", "hours": 105.5}, {"month": "2012-12", "hours": 91.95}, {"month": "2013-01", "hours": 94.0}, {"month": "2013-02", "hours": 72.85}, {"month": "2013-03", "hours": 125.55}, {"month": "2013-04", "hours": 75.9}, {"month": "2013-05", "hours": 83.85}, {"month": "2013-06", "hours": 71.55}, {"month": "2013-07", "hours": 75.0}, {"month": "2013-08", "hours": 86.6}, {"month": "2013-09", "hours": 128.25}, {"month": "2013-10", "hours": 92.65}, {"month": "2013-11", "hours": 45.65}, {"month": "2013-12", "hours": 54.75}, {"month": "2014-01", "hours": 45.25}, {"month": "2014-02", "hours": 23.05}, {"month": "2014-03", "hours": 117.95}, {"month": "2014-04", "hours": 99.35}, {"month": "2014-05", "hours": 108.0}, {"month": "2014-06", "hours": 103.9}, {"month": "2014-07", "hours": 85.6}, {"month": "2014-08", "hours": 90.25}, {"month": "2014-09", "hours": 65.5}, {"month": "2014-10", "hours": 76.5}, {"month": "2014-11", "hours": 51.0}, {"month": "2014-12", "hours": 67.0}, {"month": "2015-01", "hours": 90.25}, {"month": "2015-02", "hours": 47.75}, {"month": "2015-03", "hours": 102.0}, {"month": "2015-04", "hours": 94.75}, {"month": "2015-05", "hours": 91.0}, {"month": "2015-06", "hours": 98.7}, {"month": "2015-07", "hours": 95.0}, {"month": "2015-08", "hours": 84.65}, {"month": "2015-09", "hours": 81.45}, {"month": "2015-10", "hours": 46.0}, {"month": "2015-11", "hours": 61.75}, {"month": "2015-12", "hours": 77.5}, {"month": "2016-01", "hours": 53.0}, {"month": "2016-02", "hours": 62.4}, {"month": "2016-03", "hours": 46.5}, {"month": "2016-04", "hours": 88.8}, {"month": "2016-05", "hours": 66.65}, {"month": "2016-06", "hours": 84.7}, {"month": "2016-07", "hours": 68.5}, {"month": "2016-08", "hours": 89.57}, {"month": "2016-09", "hours": 53.75}, {"month": "2016-10", "hours": 83.25}, {"month": "2016-11", "hours": 37.9}, {"month": "2016-12", "hours": 72.5}, {"month": "2017-01", "hours": 62.0}, {"month": "2017-02", "hours": 52.2}, {"month": "2017-03", "hours": 87.0}, {"month": "2017-04", "hours": 65.85}, {"month": "2017-05", "hours": 113.0}, {"month": "2017-06", "hours": 79.55}, {"month": "2017-07", "hours": 62.0}, {"month": "2017-08", "hours": 58.25}, {"month": "2017-09", "hours": 29.0}, {"month": "2017-10", "hours": 120.25}, {"month": "2017-11", "hours": 87.0}, {"month": "2017-12", "hours": 98.75}, {"month": "2018-01", "hours": 114.2}, {"month": "2018-02", "hours": 74.5}, {"month": "2018-03", "hours": 77.25}, {"month": "2018-04", "hours": 109.5}, {"month": "2018-05", "hours": 67.25}, {"month": "2018-06", "hours": 68.75}, {"month": "2018-07", "hours": 70.5}, {"month": "2018-08", "hours": 92.75}, {"month": "2018-09", "hours": 25.25}, {"month": "2018-10", "hours": 101.75}, {"month": "2018-11", "hours": 104.75}, {"month": "2018-12", "hours": 28.5}, {"month": "2019-01", "hours": 157.5}, {"month": "2019-02", "hours": 100.4}, {"month": "2019-03", "hours": 85.0}, {"month": "2019-04", "hours": 84.5}, {"month": "2019-05", "hours": 94.5}, {"month": "2019-06", "hours": 48.0}, {"month": "2019-07", "hours": 56.25}, {"month": "2019-08", "hours": 58.5}, {"month": "2019-09", "hours": 69.5}, {"month": "2019-10", "hours": 78.75}, {"month": "2019-11", "hours": 58.75}, {"month": "2019-12", "hours": 29.5}, {"month": "2020-01", "hours": 78.0}, {"month": "2020-02", "hours": 130.0}, {"month": "2020-03", "hours": 34.75}, {"month": "2020-04", "hours": 73.0}, {"month": "2020-05", "hours": 85.0}, {"month": "2020-06", "hours": 114.0}, {"month": "2020-07", "hours": 134.25}, {"month": "2020-08", "hours": 88.75}, {"month": "2020-09", "hours": 125.5}, {"month": "2020-10", "hours": 144.5}, {"month": "2020-11", "hours": 111.75}, {"month": "2020-12", "hours": 123.5}, {"month": "2021-01", "hours": 92.5}, {"month": "2021-02", "hours": 110.05}, {"month": "2021-03", "hours": 147.75}, {"month": "2021-04", "hours": 117.0}, {"month": "2021-05", "hours": 120.5}, {"month": "2021-06", "hours": 44.55}, {"month": "2021-07", "hours": 54.75}, {"month": "2021-08", "hours": 111.5}, {"month": "2021-09", "hours": 100.15}, {"month": "2021-10", "hours": 149.5}, {"month": "2021-11", "hours": 112.75}, {"month": "2021-12", "hours": 52.5}, {"month": "2022-01", "hours": 75.5}, {"month": "2022-02", "hours": 101.25}, {"month": "2022-03", "hours": 115.25}, {"month": "2022-04", "hours": 120.25}, {"month": "2022-05", "hours": 102.5}, {"month": "2022-06", "hours": 117.25}, {"month": "2022-07", "hours": 136.75}, {"month": "2022-08", "hours": 89.0}, {"month": "2022-09", "hours": 107.75}, {"month": "2022-10", "hours": 116.5}, {"month": "2022-11", "hours": 103.25}, {"month": "2022-12", "hours": 107.75}, {"month": "2023-01", "hours": 93.5}, {"month": "2023-02", "hours": 115.25}, {"month": "2023-03", "hours": 109.5}, {"month": "2023-04", "hours": 104.5}, {"month": "2023-05", "hours": 117.5}, {"month": "2023-06", "hours": 110.5}, {"month": "2023-07", "hours": 88.25}, {"month": "2023-08", "hours": 136.0}, {"month": "2023-09", "hours": 94.25}, {"month": "2023-10", "hours": 115.75}, {"month": "2023-11", "hours": 96.75}, {"month": "2023-12", "hours": 87.0}, {"month": "2024-01", "hours": 128.5}, {"month": "2024-02", "hours": 117.5}, {"month": "2024-03", "hours": 118.0}, {"month": "2024-04", "hours": 100.75}, {"month": "2024-05", "hours": 93.25}, {"month": "2024-06", "hours": 89.75}, {"month": "2024-07", "hours": 126.5}, {"month": "2024-08", "hours": 148.25}, {"month": "2024-09", "hours": 96.75}, {"month": "2024-10", "hours": 72.75}, {"month": "2024-11", "hours": 95.0}, {"month": "2024-12", "hours": 82.5}, {"month": "2025-01", "hours": 69.75}, {"month": "2025-02", "hours": 96.0}, {"month": "2025-03", "hours": 78.5}, {"month": "2025-04", "hours": 89.75}, {"month": "2025-05", "hours": 97.0}, {"month": "2025-06", "hours": 126.5}, {"month": "2025-07", "hours": 161.75}, {"month": "2025-08", "hours": 119.5}, {"month": "2025-09", "hours": 127.5}, {"month": "2025-10", "hours": 96.25}, {"month": "2025-11", "hours": 107.0}, {"month": "2025-12", "hours": 89.25}, {"month": "2026-01", "hours": 97.75}, {"month": "2026-02", "hours": 95.5}, {"month": "2026-03", "hours": 119.75}, {"month": "2026-04", "hours": 115.25}, {"month": "2026-05", "hours": 105.25}, {"month": "2026-06", "hours": 108.75}, {"month": "2026-07", "hours": 124.75}, {"month": "2026-08", "hours": 84.75}, {"month": "2026-09", "hours": 88.5}],
+            dayOfWeek: [
+                {day: "Monday", hours: 3150.5, entries: 1759},
+                {day: "Tuesday", hours: 3516.5, entries: 1697},
+                {day: "Wednesday", hours: 3569.9, entries: 1779},
+                {day: "Thursday", hours: 3229.7, entries: 1539},
+                {day: "Friday", hours: 2433.2, entries: 1318},
+                {day: "Saturday", hours: 80.0, entries: 30},
+                {day: "Sunday", hours: 99.0, entries: 38}
+            ],
+            entrySize: [
+                {bucket: "≤0.25h", count: 430, hours: 104.0},
+                {bucket: "0.5h", count: 1630, hours: 811.0},
+                {bucket: "0.75-1h", count: 2061, hours: 1888.9},
+                {bucket: "1.25-2h", count: 1558, hours: 2643.1},
+                {bucket: "2.25-4h", count: 1376, hours: 4274.4},
+                {bucket: "4h+", count: 1105, hours: 6357.4}
+            ],
+            seasonal: [
+                {month: "Jan", hours: 1251.7}, {month: "Feb", hours: 1198.7},
+                {month: "Mar", hours: 1412.0}, {month: "Apr", hours: 1415.9},
+                {month: "May", hours: 1482.4}, {month: "Jun", hours: 1359.7},
+                {month: "Jul", hours: 1469.8}, {month: "Aug", hours: 1490.3},
+                {month: "Sep", hours: 1332.6}, {month: "Oct", hours: 1423.9},
+                {month: "Nov", hours: 1178.8}, {month: "Dec", hours: 1063.0}
+            ],
+            categories: [
+                {name: "Other", hours: 3378, entries: 1842},
+                {name: "Development", hours: 2854, entries: 1001},
+                {name: "QA/Testing", hours: 2197, entries: 968},
+                {name: "Design/Wireframes", hours: 1840, entries: 746},
+                {name: "Frontend/Styling", hours: 1457, entries: 591},
+                {name: "Meetings", hours: 1264, entries: 1428},
+                {name: "Migration/Upgrade", hours: 1042, entries: 387},
+                {name: "Review/Audit", hours: 511, entries: 296},
+                {name: "Content", hours: 418, entries: 208},
+                {name: "Email", hours: 317, entries: 210},
+                {name: "API/Integration", hours: 312, entries: 145},
+                {name: "Analytics", hours: 207, entries: 161},
+                {name: "DevOps/Deploy", hours: 170, entries: 128},
+                {name: "Training", hours: 114, entries: 49}
+            ],
+            deepWork: [
+                {year: "2012", deep: 97, frag: 1},
+                {year: "2013", deep: 93, frag: 2},
+                {year: "2014", deep: 75, frag: 9},
+                {year: "2015", deep: 88, frag: 3},
+                {year: "2016", deep: 79, frag: 9},
+                {year: "2017", deep: 71, frag: 13},
+                {year: "2018", deep: 77, frag: 10},
+                {year: "2019", deep: 73, frag: 9},
+                {year: "2020", deep: 69, frag: 8},
+                {year: "2021", deep: 66, frag: 13},
+                {year: "2022", deep: 73, frag: 10},
+                {year: "2023", deep: 62, frag: 13},
+                {year: "2024", deep: 66, frag: 11},
+                {year: "2025", deep: 70, frag: 9},
+                {year: "2026", deep: 63, frag: 13}
+            ],
+            meetingPct: [
+                {year: "2012", pct: 3.6}, {year: "2013", pct: 2.5},
+                {year: "2014", pct: 6.7}, {year: "2015", pct: 10.5},
+                {year: "2016", pct: 6.2}, {year: "2017", pct: 6.4},
+                {year: "2018", pct: 12.8}, {year: "2019", pct: 12.3},
+                {year: "2020", pct: 18.2}, {year: "2021", pct: 19.1},
+                {year: "2022", pct: 17.5}, {year: "2023", pct: 22.4},
+                {year: "2024", pct: 22.5}, {year: "2025", pct: 12.6},
+                {year: "2026", pct: 14.0}
+            ],
+            tech: [
+                {name: "Drupal", hours: 8887.2, entries: 4135},
+                {name: "WordPress", hours: 2169.8, entries: 1094},
+                {name: "CSS/Styling", hours: 1514.2, entries: 608},
+                {name: "Adobe AEM", hours: 1349.5, entries: 684},
+                {name: "Email", hours: 588.5, entries: 373},
+                {name: "Analytics", hours: 278.9, entries: 184},
+                {name: "JavaScript", hours: 221.5, entries: 88},
+                {name: "React", hours: 54.0, entries: 17}
+            ],
+            techTrend: {
+                years: ["2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024","2025","2026"],
+                drupal: [847.4,835.8,467.2,583.5,321.4,675.8,511.9,545.4,692.3,730.8,960.8,514.0,407.3,562.5,290.8],
+                wordpress: [0,0.8,0,0,0,0,268.3,71.0,57.3,115.3,50.8,501.8,646.8,257.8,315.0],
+                aem: [0,0,0,7.5,140.6,36.3,19.5,197.3,341.0,160.5,31.5,25.5,84.0,83.0,223.0],
+                javascript: [0,9.3,0,27.5,26.8,26.0,12.5,52.9,44.5,71.8,155.5,156.3,44.8,56.5,36.3]
+            },
+            keywordTrend: {
+                years: ["2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024","2025","2026"],
+                design: [248.2,121.2,67.2,31.1,98.9,77.0,69.9,82.0,35.8,38.0,123.5,33.8,81.3,53.5,79.3],
+                mobile: [25.0,78.8,107.7,91.8,22.5,105.3,49.5,25.3,62.0,106.8,93.8,64.0,56.5,70.0,68.5],
+                testing: [160.3,40.9,80.7,62.4,76.5,71.5,70.3,132.8,147.3,207.6,211.3,122.3,182.0,153.0,247.5],
+                meetings: [39.5,20.6,54.2,72.0,38.1,27.4,84.5,74.5,121.3,132.8,120.0,109.5,122.0,82.0,63.3],
+                migration: [3.0,32.5,0,4.5,2.5,0,0.5,40.0,49.3,13.0,241.0,73.8,232.5,102.3,33.5]
+            },
+            keywords: [
+                {word: "dev", count: 631, hours: 1766},
+                {word: "development", count: 560, hours: 1538},
+                {word: "updates", count: 546, hours: 1180},
+                {word: "styling", count: 430, hours: 1075},
+                {word: "design", count: 499, hours: 850},
+                {word: "theme", count: 367, hours: 1010},
+                {word: "mobile", count: 327, hours: 901},
+                {word: "meetings", count: 708, hours: 564},
+                {word: "review", count: 697, hours: 705},
+                {word: "landing page", count: 274, hours: 602},
+                {word: "testing", count: 301, hours: 608},
+                {word: "content", count: 267, hours: 684},
+                {word: "css", count: 195, hours: 495},
+                {word: "blog", count: 210, hours: 453}
+            ],
+            workTypes: [
+                {name: "Implement", hours: 4075, entries: 1849, desc: "create, build, setup, styling, testing", color: "#4ade80"},
+                {name: "Strategy", hours: 3034, entries: 2100, desc: "review, design, planning, meetings", color: "#818cf8"},
+                {name: "Maintain", hours: 2626, entries: 1467, desc: "update, fix, add, adjust", color: "#fbbf24"}
+            ],
+            companies: [
+                {name: "Linkwell Health", hours: 5605.2, entries: 2695},
+                {name: "Enel NA", hours: 1349.3, entries: 683},
+                {name: "Brunello, Inc.", hours: 1271.7, entries: 1025},
+                {name: "Dartmouth College", hours: 997.3, entries: 631},
+                {name: "Imaginatik", hours: 992.1, entries: 313},
+                {name: "SumerSports", hours: 879.5, entries: 441},
+                {name: "Princeton Alumni Weekly", hours: 401.4, entries: 133},
+                {name: "Bally Ribbon Mills", hours: 369.7, entries: 97},
+                {name: "GiggleFiber", hours: 349.2, entries: 186},
+                {name: "Vicinity Energy", hours: 348.2, entries: 221},
+                {name: "Sonima / Elev8d", hours: 331.0, entries: 111},
+                {name: "Penn Stater", hours: 290.7, entries: 136},
+                {name: "ReflexMD", hours: 251.7, entries: 129},
+                {name: "Men's Health", hours: 241.6, entries: 70},
+                {name: "Columbia University", hours: 221.7, entries: 127}
+            ],
+            projects: [
+                {name: "CHLE Re-Theme", company: "Linkwell", hours: 1025.8},
+                {name: "HLE/CHLE", company: "Linkwell", hours: 819.1},
+                {name: "Plan Microsites", company: "Linkwell", hours: 523.4},
+                {name: "D10 & Site Design Update", company: "Dartmouth", hours: 488.8},
+                {name: "Site Rebuild", company: "Imaginatik", hours: 471.4},
+                {name: "DR Calculator", company: "Enel NA", hours: 456.5},
+                {name: "Optum", company: "Linkwell", hours: 430.3},
+                {name: "PAW Website Redesign", company: "Princeton", hours: 335.9},
+                {name: "Design & Dev", company: "Bally", hours: 333.4},
+                {name: "Penn Stater Website", company: "Penn Stater", hours: 290.8},
+                {name: "B'link Phase 2", company: "Linkwell", hours: 280.0},
+                {name: "Plan Microsites 1.0", company: "Linkwell", hours: 238.8},
+                {name: "Elev8d Dev/Design", company: "Sonima", hours: 218.0},
+                {name: "UHC", company: "Linkwell", hours: 215.8},
+                {name: "Content Hub", company: "ReflexMD", hours: 185.5}
+            ],
+            topClientByYear: [
+                {year: "2012", client: "Imaginatik", hours: 491.4},
+                {year: "2013", client: "Linkwell Health", hours: 764.2},
+                {year: "2014", client: "Linkwell Health", hours: 230.4},
+                {year: "2015", client: "Princeton Alumni Weekly", hours: 284.5},
+                {year: "2016", client: "Linkwell Health", hours: 175.2},
+                {year: "2017", client: "Linkwell Health", hours: 491.1},
+                {year: "2018", client: "Linkwell Health", hours: 471.9},
+                {year: "2019", client: "Linkwell Health", hours: 544.9},
+                {year: "2020", client: "Linkwell Health", hours: 570.0},
+                {year: "2021", client: "Linkwell Health", hours: 566.8},
+                {year: "2022", client: "Linkwell Health", hours: 950.0},
+                {year: "2023", client: "SumerSports", hours: 475.2},
+                {year: "2024", client: "SumerSports", hours: 378.8},
+                {year: "2025", client: "Dartmouth College", hours: 473.5},
+                {year: "2026", client: "Dartmouth College", hours: 290.8}
+            ],
+            clientDiversity: [
+                {year: "2012", clients: 9, hours: 1103, avgPerClient: 122.5},
+                {year: "2013", clients: 11, hours: 1007, avgPerClient: 91.5},
+                {year: "2014", clients: 13, hours: 933, avgPerClient: 71.8},
+                {year: "2015", clients: 11, hours: 971, avgPerClient: 88.3},
+                {year: "2016", clients: 15, hours: 808, avgPerClient: 53.8},
+                {year: "2017", clients: 11, hours: 915, avgPerClient: 83.2},
+                {year: "2018", clients: 9, hours: 935, avgPerClient: 103.9},
+                {year: "2019", clients: 12, hours: 921, avgPerClient: 76.8},
+                {year: "2020", clients: 11, hours: 1243, avgPerClient: 113.0},
+                {year: "2021", clients: 12, hours: 1214, avgPerClient: 101.1},
+                {year: "2022", clients: 15, hours: 1293, avgPerClient: 86.2},
+                {year: "2023", clients: 16, hours: 1269, avgPerClient: 79.3},
+                {year: "2024", clients: 14, hours: 1270, avgPerClient: 90.7},
+                {year: "2025", clients: 19, hours: 1259, avgPerClient: 66.3},
+                {year: "2026", clients: 11, hours: 940, avgPerClient: 85.5}
+            ],
+            todoCategories: [
+                {name: "Other", hours: 3378, pct: 21.0},
+                {name: "Development", hours: 2854, pct: 17.7},
+                {name: "QA/Testing", hours: 2197, pct: 13.7},
+                {name: "Design/Wireframes", hours: 1840, pct: 11.4},
+                {name: "Frontend/Styling", hours: 1457, pct: 9.1},
+                {name: "Meetings", hours: 1264, pct: 7.9},
+                {name: "Migration/Upgrade", hours: 1042, pct: 6.5},
+                {name: "Review/Audit", hours: 511, pct: 3.2},
+                {name: "Content", hours: 418, pct: 2.6},
+                {name: "API/Integration", hours: 312, pct: 1.9}
+            ],
+            workMixByRole: [
+                {role: "Interactive Designer", meetings: 3.4, dev: 24.7, theming: 3.3, migration: 0.2, qa: 1.0, design: 10.8},
+                {role: "Senior Frontend Dev", meetings: 8.1, dev: 30.0, theming: 5.5, migration: 5.6, qa: 4.5, design: 2.2},
+                {role: "Tech Lead", meetings: 5.7, dev: 37.1, theming: 0.3, migration: 6.0, qa: 6.9, design: 0.8}
+            ],
+            avgSession: [
+                {type: "Overall", avg: 1.97, sessions: 8160, color: "#94a3b8"},
+                {type: "Implement", avg: 2.21, sessions: 1831, color: "#4ade80"},
+                {type: "Maintain", avg: 1.78, sessions: 1392, color: "#fbbf24"},
+                {type: "Strategy", avg: 1.45, sessions: 2083, color: "#818cf8"}
+            ],
+            quickTasks: [
+                {task: "Meetings & Phone Calls", avg: 0.79, count: 502, hours: 394.3},
+                {task: "Weekly Checkin Call", avg: 0.61, count: 258, hours: 158.5},
+                {task: "Weekly Design and Dev Review", avg: 0.78, count: 170, hours: 133.0},
+                {task: "Meetings & Calls", avg: 0.76, count: 73, hours: 55.5},
+                {task: "Misc. support", avg: 0.80, count: 46, hours: 36.8},
+                {task: "Hours/Time entry", avg: 0.67, count: 45, hours: 30.0},
+                {task: "Google Analytics", avg: 0.95, count: 22, hours: 21.0},
+                {task: "Project Management", avg: 0.75, count: 15, hours: 11.3}
+            ]
+        };
+
+        const chartColors = {
+            primary: '#38bdf8',
+            secondary: '#818cf8',
+            tertiary: '#a78bfa',
+            accent: '#4ade80',
+            warning: '#fbbf24',
+            muted: '#64748b',
+            grid: '#334155',
+            text: '#94a3b8'
+        };
+
+        // Yearly Chart
+        new Chart(document.getElementById('yearlyChart'), {
+            type: 'bar',
+            data: {
+                labels: data.yearly.map(d => d.year),
+                datasets: [{
+                    label: 'Hours',
+                    data: data.yearly.map(d => d.hours),
+                    backgroundColor: data.yearly.map(d => parseInt(d.year) >= 2020 ? chartColors.primary : chartColors.muted),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Monthly Chart - restructured with years as lines
+        const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const yearColors = {
+            '2012': '#64748b', '2013': '#475569', '2014': '#94a3b8',
+            '2015': '#6366f1', '2016': '#8b5cf6', '2017': '#a78bfa',
+            '2018': '#06b6d4', '2019': '#0ea5e9', '2020': '#38bdf8',
+            '2021': '#22c55e', '2022': '#4ade80', '2023': '#fbbf24',
+            '2024': '#f97316', '2025': '#f43f5e', '2026': '#ec4899'
+        };
+
+        // Group monthly data by year
+        const monthlyByYear = {};
+        data.monthly.forEach(d => {
+            const [year, month] = d.month.split('-');
+            if (!monthlyByYear[year]) monthlyByYear[year] = Array(12).fill(null);
+            monthlyByYear[year][parseInt(month) - 1] = d.hours;
+        });
+
+        const monthlyDatasets = Object.entries(monthlyByYear).map(([year, hours]) => ({
+            label: year,
+            data: hours,
+            borderColor: yearColors[year] || chartColors.primary,
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            pointRadius: 2,
+            borderWidth: year >= '2024' ? 2.5 : 1.5
+        }));
+
+        new Chart(document.getElementById('monthlyChart'), {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: monthlyDatasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: { color: chartColors.text, boxWidth: 12, font: { size: 10 } }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Day of Week Chart
+        new Chart(document.getElementById('dayOfWeekChart'), {
+            type: 'bar',
+            data: {
+                labels: data.dayOfWeek.map(d => d.day.slice(0,3)),
+                datasets: [{
+                    label: 'Hours',
+                    data: data.dayOfWeek.map(d => d.hours),
+                    backgroundColor: data.dayOfWeek.map((d, i) => i < 5 ? chartColors.primary : chartColors.muted),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Entry Size Chart
+        new Chart(document.getElementById('entrySizeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.entrySize.map(d => d.bucket),
+                datasets: [{
+                    data: data.entrySize.map(d => d.count),
+                    backgroundColor: ['#64748b', '#475569', '#38bdf8', '#818cf8', '#a78bfa', '#4ade80']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: chartColors.text, boxWidth: 12 } }
+                }
+            }
+        });
+
+        // Seasonal Chart
+        new Chart(document.getElementById('seasonalChart'), {
+            type: 'bar',
+            data: {
+                labels: data.seasonal.map(d => d.month),
+                datasets: [{
+                    label: 'Hours',
+                    data: data.seasonal.map(d => d.hours),
+                    backgroundColor: chartColors.secondary,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Categories Chart
+        new Chart(document.getElementById('categoriesChart'), {
+            type: 'bar',
+            data: {
+                labels: data.categories.slice(0, 10).map(d => d.name),
+                datasets: [{
+                    label: 'Hours',
+                    data: data.categories.slice(0, 10).map(d => d.hours),
+                    backgroundColor: chartColors.primary,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    y: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Categories Table
+        const totalHours = data.categories.reduce((s, c) => s + c.hours, 0);
+        document.getElementById('categoriesTable').innerHTML = `
+            <tr><th>Category</th><th class="text-right">Hours</th><th class="text-right">%</th></tr>
+            ${data.categories.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td class="text-right">${c.hours.toLocaleString()}</td>
+                    <td class="text-right">${((c.hours/totalHours)*100).toFixed(1)}%</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Deep Work Chart
+        new Chart(document.getElementById('deepWorkChart'), {
+            type: 'line',
+            data: {
+                labels: data.deepWork.map(d => d.year),
+                datasets: [{
+                    label: 'Deep Work %',
+                    data: data.deepWork.map(d => d.deep),
+                    borderColor: chartColors.accent,
+                    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }, {
+                    label: 'Fragmented %',
+                    data: data.deepWork.map(d => d.frag),
+                    borderColor: chartColors.warning,
+                    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: chartColors.text } } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Meeting Trend Chart
+        new Chart(document.getElementById('meetingTrendChart'), {
+            type: 'bar',
+            data: {
+                labels: data.meetingPct.map(d => d.year),
+                datasets: [{
+                    label: 'Meeting %',
+                    data: data.meetingPct.map(d => d.pct),
+                    backgroundColor: data.meetingPct.map(d => d.pct > 15 ? '#f87171' : chartColors.primary),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 25, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Tech Table
+        document.getElementById('techTable').innerHTML = `
+            <tr><th>Technology</th><th class="text-right">Hours</th><th class="text-right">Entries</th></tr>
+            ${data.tech.map(t => `
+                <tr>
+                    <td>${t.name}</td>
+                    <td class="text-right">${t.hours.toLocaleString()}</td>
+                    <td class="text-right">${t.entries}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Tech Trend Chart
+        new Chart(document.getElementById('techTrendChart'), {
+            type: 'line',
+            data: {
+                labels: data.techTrend.years,
+                datasets: [
+                    { label: 'Drupal', data: data.techTrend.drupal, borderColor: '#38bdf8', tension: 0.3, pointRadius: 2 },
+                    { label: 'WordPress', data: data.techTrend.wordpress, borderColor: '#818cf8', tension: 0.3, pointRadius: 2 },
+                    { label: 'Adobe AEM', data: data.techTrend.aem, borderColor: '#f97316', tension: 0.3, pointRadius: 2 },
+                    { label: 'JavaScript', data: data.techTrend.javascript, borderColor: '#fbbf24', tension: 0.3, pointRadius: 2 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: chartColors.text } } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Keyword Trend Chart
+        new Chart(document.getElementById('keywordTrendChart'), {
+            type: 'line',
+            data: {
+                labels: data.keywordTrend.years,
+                datasets: [
+                    { label: 'Testing', data: data.keywordTrend.testing, borderColor: '#4ade80', tension: 0.3, pointRadius: 2 },
+                    { label: 'Design', data: data.keywordTrend.design, borderColor: '#818cf8', tension: 0.3, pointRadius: 2 },
+                    { label: 'Migration', data: data.keywordTrend.migration, borderColor: '#f97316', tension: 0.3, pointRadius: 2 },
+                    { label: 'Meetings', data: data.keywordTrend.meetings, borderColor: '#fb7185', tension: 0.3, pointRadius: 2 },
+                    { label: 'Mobile', data: data.keywordTrend.mobile, borderColor: '#38bdf8', tension: 0.3, pointRadius: 2 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: chartColors.text } } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Keyword Bubbles
+        const maxHours = Math.max(...data.keywords.map(k => k.hours));
+        const minSize = 50, maxSize = 120;
+        const colors = ['#38bdf8', '#818cf8', '#a78bfa', '#4ade80', '#fbbf24', '#fb7185', '#2dd4bf', '#f472b6', '#67e8f9', '#c4b5fd', '#86efac', '#fcd34d'];
+        document.getElementById('keywordBubbles').innerHTML = data.keywords.map((k, i) => {
+            const size = minSize + (k.hours / maxHours) * (maxSize - minSize);
+            const color = colors[i % colors.length];
+            return `<div style="
+                width: ${size}px;
+                height: ${size}px;
+                border-radius: 50%;
+                background: ${color}22;
+                border: 2px solid ${color};
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 0.25rem;
+                cursor: default;
+            " title="${k.word}: ${k.hours} hours (${k.count} entries)">
+                <span style="font-size: ${Math.max(10, size/8)}px; font-weight: 600; color: ${color};">${k.word}</span>
+                <span style="font-size: ${Math.max(9, size/10)}px; color: #94a3b8;">${k.hours}h</span>
+            </div>`;
+        }).join('');
+
+        // Work Types Chart
+        const totalWorkTypeHours = data.workTypes.reduce((sum, w) => sum + w.hours, 0);
+        document.getElementById('workTypesChart').innerHTML = data.workTypes.map(w => {
+            const pct = (w.hours / totalWorkTypeHours * 100).toFixed(1);
+            return `<div style="margin-bottom: 1.25rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 600; color: ${w.color};">${w.name}</span>
+                    <span style="color: #e2e8f0;">${w.hours.toLocaleString()} hrs (${pct}%)</span>
+                </div>
+                <div style="background: #1e293b; border-radius: 0.5rem; height: 1.5rem; overflow: hidden;">
+                    <div style="background: ${w.color}; height: 100%; width: ${pct}%; border-radius: 0.5rem;"></div>
+                </div>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;">${w.desc}</div>
+            </div>`;
+        }).join('');
+
+        // Companies Table
+        const maxCompanyHours = Math.max(...data.companies.map(c => c.hours));
+        document.getElementById('companiesTable').innerHTML = `
+            <tr><th>Company</th><th class="text-right">Hours</th></tr>
+            ${data.companies.map(c => `
+                <tr>
+                    <td>
+                        ${c.name}
+                        <div class="bar"><div class="bar-fill" style="width: ${(c.hours / maxCompanyHours * 100)}%"></div></div>
+                    </td>
+                    <td class="text-right">${c.hours.toLocaleString()}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Projects Table
+        const maxProjectHours = Math.max(...data.projects.map(p => p.hours));
+        document.getElementById('projectsTable').innerHTML = `
+            <tr><th>Project</th><th class="text-right">Hours</th></tr>
+            ${data.projects.map(p => `
+                <tr>
+                    <td>
+                        <span style="color: #64748b;">${p.company} -</span> ${p.name}
+                        <div class="bar"><div class="bar-fill" style="width: ${(p.hours / maxProjectHours * 100)}%"></div></div>
+                    </td>
+                    <td class="text-right">${p.hours.toLocaleString()}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Top Client by Year Table
+        document.getElementById('topClientTable').innerHTML = `
+            <tr><th>Year</th><th>Top Client</th><th class="text-right">Hours</th></tr>
+            ${data.topClientByYear.map(t => `
+                <tr>
+                    <td>${t.year}</td>
+                    <td>${t.client}</td>
+                    <td class="text-right">${t.hours.toLocaleString()}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Client Diversity Chart
+        new Chart(document.getElementById('clientDiversityChart'), {
+            type: 'bar',
+            data: {
+                labels: data.clientDiversity.map(d => d.year),
+                datasets: [{
+                    label: 'Clients',
+                    data: data.clientDiversity.map(d => d.clients),
+                    backgroundColor: '#38bdf8',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text, maxRotation: 45 } }
+                }
+            }
+        });
+
+        // Todo Categories Chart
+        new Chart(document.getElementById('todoCategoriesChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.todoCategories.map(c => c.name),
+                datasets: [{
+                    data: data.todoCategories.map(c => c.hours),
+                    backgroundColor: ['#38bdf8', '#818cf8', '#a78bfa', '#4ade80', '#fbbf24', '#fb7185', '#2dd4bf', '#f472b6', '#64748b', '#475569']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: chartColors.text, boxWidth: 10, font: { size: 11 } } }
+                }
+            }
+        });
+
+        // Work Mix by Role Table
+        document.getElementById('workMixTable').innerHTML = `
+            <tr><th>Role</th><th class="text-right">Dev</th><th class="text-right">Meet</th><th class="text-right">QA</th><th class="text-right">Design</th></tr>
+            ${data.workMixByRole.map(r => `
+                <tr>
+                    <td>${r.role.split(' ')[0]}</td>
+                    <td class="text-right">${r.dev}%</td>
+                    <td class="text-right">${r.meetings}%</td>
+                    <td class="text-right">${r.qa}%</td>
+                    <td class="text-right">${r.design}%</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Task Complexity Table
+        document.getElementById('taskComplexityTable').innerHTML = `
+            <tr><th>Type</th><th class="text-right">Avg</th><th class="text-right">Insight</th></tr>
+            <tr><td>Quick tasks</td><td class="text-right">0.7h</td><td class="text-right">Meetings, admin</td></tr>
+            <tr><td>Medium tasks</td><td class="text-right">1.5-2h</td><td class="text-right">Features, fixes</td></tr>
+            <tr><td>Deep work</td><td class="text-right">3-5h</td><td class="text-right">Migrations, apps</td></tr>
+        `;
+
+        // Average Session Length
+        const maxAvg = Math.max(...data.avgSession.map(s => s.avg));
+        document.getElementById('avgSessionChart').innerHTML = data.avgSession.map(s => {
+            const barWidth = (s.avg / maxAvg * 100).toFixed(0);
+            return `<div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                    <span style="color: ${s.color}; font-weight: 500;">${s.type}</span>
+                    <span style="color: #e2e8f0; font-weight: 600;">${s.avg} hrs</span>
+                </div>
+                <div style="background: #1e293b; border-radius: 0.25rem; height: 0.75rem; overflow: hidden;">
+                    <div style="background: ${s.color}; height: 100%; width: ${barWidth}%; border-radius: 0.25rem;"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.2rem;">${s.sessions.toLocaleString()} sessions</div>
+            </div>`;
+        }).join('');
+
+        // Quick Tasks Table
+        document.getElementById('quickTasksTable').innerHTML = `
+            <tr><th>Task</th><th class="text-right">Avg</th><th class="text-right">Count</th></tr>
+            ${data.quickTasks.map(t => `
+                <tr>
+                    <td>${t.task}</td>
+                    <td class="text-right">${t.avg}h</td>
+                    <td class="text-right">${t.count}x</td>
+                </tr>
+            `).join('')}
+        `;
+    </script>
+</body>
+</html>
