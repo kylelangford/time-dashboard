@@ -92,7 +92,7 @@
 <body>
     <a href="../index.html" class="back-link">&larr; Back to Dashboard</a>
     <h1>Billable Efficiency Analysis</h1>
-    <h2>Kyle Langford | Identifying Problem Clients & Projects (2020-2026)</h2>
+    <h2>Kyle Langford | Identifying Problem Clients & Projects (2025-2026)</h2>
     <p style="color:#64748b; margin-bottom:1rem; font-size:0.875rem;">
         Industry benchmark: 75-85% billable efficiency. Projects below 60% need review. Overhead should be &lt;15%.
     </p>
@@ -159,57 +159,38 @@
         const LOW_WEIGHT = 0.10;   // Overhead
 
         // Client data: [company, total_hours, high_hours (billable), med_hours (support), low_hours (overhead)]
+        // Data from 2025-2026 only
         const clientData = [
-            ["Linkwell Health", 2780.0, 1418.8, 1048.0, 313.3],
-            ["Enel NA", 948.3, 348.0, 539.3, 61.0],
-            ["SumerSports", 879.5, 287.0, 543.5, 49.0],
-            ["Dartmouth College", 818.3, 416.0, 313.3, 89.0],
-            ["GiggleFiber", 349.3, 162.5, 166.8, 20.0],
-            ["Vicinity Energy", 348.3, 183.4, 137.6, 27.3],
-            ["Penn Stater", 290.8, 165.0, 80.0, 45.8],
-            ["ReflexMD", 251.8, 109.3, 135.8, 6.8],
-            ["Columbia University", 221.8, 63.0, 144.8, 14.0],
-            ["Cottonball", 171.3, 67.8, 97.5, 6.0],
-            ["Mental", 127.0, 52.5, 69.3, 5.3],
-            ["Rollworks", 110.3, 49.3, 52.3, 8.8],
-            ["Safewaze", 100.5, 61.3, 34.3, 5.0],
-            ["Non Profit Quarterly", 76.5, 44.3, 27.0, 5.3],
-            ["Gray Associates", 74.8, 31.8, 37.8, 5.3],
-            ["EforAll", 61.0, 15.3, 40.3, 5.5],
-            ["BlueZones", 56.0, 37.3, 15.3, 3.5]
+            ["Dartmouth College", 764.3, 439.0, 128.8, 71.0],
+            ["GiggleFiber", 349.3, 168.8, 120.5, 18.8],
+            ["Enel NA", 306.0, 128.0, 115.8, 25.0],
+            ["Brunello", 200.5, 50.8, 14.0, 13.3],
+            ["Cottonball", 171.3, 53.8, 46.3, 5.8],
+            ["Vicinity Energy", 114.8, 62.3, 19.0, 2.8],
+            ["Columbia University", 74.8, 25.0, 16.5, 3.0],
+            ["EforAll", 61.0, 27.5, 14.3, 12.3],
+            ["ReflexMD", 40.8, 16.5, 8.8, 0.0],
+            ["Gray Associates", 28.8, 7.5, 0.0, 0.0],
+            ["SumerSports", 25.5, 9.8, 2.0, 0.0]
         ];
 
         // Project data: [company, project, total_hours, high_hours, med_hours, low_hours]
+        // Data from 2025-2026 only
         const projectData = [
-            ["Linkwell", "CHLE Re-Theme", 1025.8, 525.5, 411.0, 89.3],
-            ["SumerSports", "B2C Retainer", 865.0, 282.8, 534.8, 47.5],
-            ["Dartmouth", "D10 & Site Design", 488.8, 249.3, 194.8, 44.8],
-            ["Enel", "DR Calculator", 456.5, 161.3, 268.3, 27.0],
-            ["Linkwell", "Miscellaneous", 454.8, 169.3, 157.0, 128.5],
-            ["Linkwell", "Optum", 430.3, 229.5, 167.5, 33.3],
-            ["GiggleFiber", "Retainer", 349.3, 162.5, 166.8, 20.0],
-            ["Vicinity", "Support Retainer", 348.3, 183.4, 137.6, 27.3],
-            ["Enel", "Retainer", 339.0, 120.8, 186.8, 31.5],
-            ["Penn Stater", "Website", 290.8, 165.0, 80.0, 45.8],
-            ["Linkwell", "B'link Dev/Misc", 286.3, 175.8, 87.0, 23.5],
-            ["Dartmouth", "Monthly Retainer", 226.0, 95.5, 92.3, 38.3],
-            ["Linkwell", "UHC", 215.8, 122.3, 76.3, 17.3],
-            ["ReflexMD", "Content Hub", 185.5, 68.3, 110.5, 6.8],
-            ["Cottonball", "Front-end Dev", 170.5, 67.0, 97.5, 6.0],
-            ["Enel", "EGP Wind Landing", 141.5, 64.5, 74.5, 2.5],
-            ["Mental", "Misc. Support", 127.0, 52.5, 69.3, 5.3],
-            ["Columbia", "Magazine", 99.5, 27.8, 66.3, 5.5],
-            ["Linkwell", "B'link Phase 2", 98.5, 40.8, 53.5, 4.3],
-            ["Linkwell", "America's Best", 93.8, 61.0, 30.5, 2.3],
-            ["Dartmouth", "In Memory", 83.0, 64.0, 14.0, 5.0],
-            ["Linkwell", "HLE Dashboard", 79.5, 54.5, 19.0, 6.0],
-            ["Safewaze", "Website UX/Design", 79.3, 47.3, 27.0, 5.0],
-            ["Gray", "Services Retainer", 74.8, 31.8, 37.8, 5.3],
-            ["Columbia", "FY24 Endowment", 66.3, 13.3, 53.0, 0.0],
-            ["Rollworks", "Buyer Builder", 66.3, 34.3, 28.5, 3.5],
-            ["Linkwell", "Corporate Site", 57.5, 28.8, 21.5, 7.3],
-            ["BlueZones", "Website MVP", 56.0, 37.3, 15.3, 3.5],
-            ["ReflexMD", "Misc. Support", 52.8, 36.0, 16.8, 0.0]
+            ["Dartmouth", "D10 & Site Design Update", 455.3, 271.8, 68.5, 24.0],
+            ["GiggleFiber", "Retainer", 349.3, 168.8, 120.5, 18.8],
+            ["Enel", "DR Calculator", 263.5, 111.3, 98.5, 24.0],
+            ["Dartmouth", "Monthly Retainer", 226.0, 85.5, 47.3, 35.5],
+            ["Brunello", "Admin", 200.5, 50.8, 14.0, 13.3],
+            ["Cottonball", "Front-end Dev", 170.5, 53.0, 45.5, 5.0],
+            ["Vicinity", "Support Retainer", 114.8, 62.3, 19.0, 2.8],
+            ["Dartmouth", "In Memory", 83.0, 81.8, 13.0, 11.5],
+            ["EforAll", "Restructuring", 49.3, 23.5, 9.5, 11.8],
+            ["Columbia", "Magazine", 45.5, 22.0, 14.5, 0.0],
+            ["Enel", "Retainer", 42.5, 16.8, 17.3, 1.0],
+            ["Gray", "Services Retainer", 28.8, 7.5, 0.0, 0.0],
+            ["ReflexMD", "Misc. Support", 28.8, 12.8, 3.8, 0.0],
+            ["SumerSports", "B2C Retainer", 25.5, 9.8, 2.0, 0.0]
         ];
 
         function calcEfficiency(total, high, medQA, low) {
@@ -266,7 +247,7 @@
         document.getElementById('summaryStats').innerHTML = `
             <div class="stat-card">
                 <div class="stat-value blue">${totals.hours.toLocaleString()}</div>
-                <div class="stat-label">Total Hours (2020-2026)</div>
+                <div class="stat-label">Total Hours (2025-2026)</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value ${overallEfficiency >= 70 ? 'green' : overallEfficiency >= 60 ? 'yellow' : 'red'}">${overallEfficiency.toFixed(0)}%</div>
