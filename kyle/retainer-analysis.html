@@ -170,6 +170,21 @@
                 <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:1rem;">Clients who frequently hit 30+ hours/month</p>
                 <table id="consistent30Table"></table>
             </div>
+            <div class="card">
+                <h3>Most Consistent 40hr+ Clients</h3>
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:1rem;">Clients who frequently hit 40+ hours/month</p>
+                <table id="consistent40Table"></table>
+            </div>
+            <div class="card">
+                <h3>Most Consistent 50hr+ Clients</h3>
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:1rem;">Clients who frequently hit 50+ hours/month</p>
+                <table id="consistent50Table"></table>
+            </div>
+            <div class="card">
+                <h3>Most Consistent 60hr+ Clients</h3>
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:1rem;">Clients who frequently hit 60+ hours/month</p>
+                <table id="consistent60Table"></table>
+            </div>
         </div>
     </div>
 
@@ -353,7 +368,7 @@
         data2025.forEach(d => {
             // Client stats
             if (!clientStats[d.company]) {
-                clientStats[d.company] = { months: 0, m10: 0, m20: 0, m30: 0, m40: 0, totalHours: 0, monthList: [] };
+                clientStats[d.company] = { months: 0, m10: 0, m20: 0, m30: 0, m40: 0, m50: 0, m60: 0, totalHours: 0, monthList: [] };
             }
             clientStats[d.company].months++;
             clientStats[d.company].totalHours += d.hours;
@@ -362,6 +377,8 @@
             if (d.hours >= 20) clientStats[d.company].m20++;
             if (d.hours >= 30) clientStats[d.company].m30++;
             if (d.hours >= 40) clientStats[d.company].m40++;
+            if (d.hours >= 50) clientStats[d.company].m50++;
+            if (d.hours >= 60) clientStats[d.company].m60++;
 
             // Monthly totals
             if (!monthlyTotals[d.month]) {
@@ -544,6 +561,54 @@
                 <td class="text-right" style="color:#f97316;">${c.m30}</td>
                 <td class="text-right">${c.months}</td>
                 <td class="text-right">${(c.rate30 * 100).toFixed(0)}%</td>
+            </tr>`).join('')}
+        `;
+
+        // Consistent 40hr clients
+        const sorted40 = Object.entries(clientStats)
+            .map(([name, stats]) => ({ name, ...stats, rate40: stats.m40 / stats.months }))
+            .filter(c => c.m40 >= 1)
+            .sort((a, b) => b.m40 - a.m40);
+
+        document.getElementById('consistent40Table').innerHTML = `
+            <tr><th>Client</th><th class="text-right">40+ Months</th><th class="text-right">Total Months</th><th class="text-right">Rate</th></tr>
+            ${sorted40.slice(0, 10).map(c => `<tr>
+                <td>${c.name}</td>
+                <td class="text-right" style="color:#a78bfa;">${c.m40}</td>
+                <td class="text-right">${c.months}</td>
+                <td class="text-right">${(c.rate40 * 100).toFixed(0)}%</td>
+            </tr>`).join('')}
+        `;
+
+        // Consistent 50hr clients
+        const sorted50 = Object.entries(clientStats)
+            .map(([name, stats]) => ({ name, ...stats, rate50: stats.m50 / stats.months }))
+            .filter(c => c.m50 >= 1)
+            .sort((a, b) => b.m50 - a.m50);
+
+        document.getElementById('consistent50Table').innerHTML = `
+            <tr><th>Client</th><th class="text-right">50+ Months</th><th class="text-right">Total Months</th><th class="text-right">Rate</th></tr>
+            ${sorted50.slice(0, 10).map(c => `<tr>
+                <td>${c.name}</td>
+                <td class="text-right" style="color:#ec4899;">${c.m50}</td>
+                <td class="text-right">${c.months}</td>
+                <td class="text-right">${(c.rate50 * 100).toFixed(0)}%</td>
+            </tr>`).join('')}
+        `;
+
+        // Consistent 60hr clients
+        const sorted60 = Object.entries(clientStats)
+            .map(([name, stats]) => ({ name, ...stats, rate60: stats.m60 / stats.months }))
+            .filter(c => c.m60 >= 1)
+            .sort((a, b) => b.m60 - a.m60);
+
+        document.getElementById('consistent60Table').innerHTML = `
+            <tr><th>Client</th><th class="text-right">60+ Months</th><th class="text-right">Total Months</th><th class="text-right">Rate</th></tr>
+            ${sorted60.slice(0, 10).map(c => `<tr>
+                <td>${c.name}</td>
+                <td class="text-right" style="color:#ef4444;">${c.m60}</td>
+                <td class="text-right">${c.months}</td>
+                <td class="text-right">${(c.rate60 * 100).toFixed(0)}%</td>
             </tr>`).join('')}
         `;
 

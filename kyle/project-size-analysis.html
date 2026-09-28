@@ -123,8 +123,9 @@
     </style>
 </head>
 <body>
+    <a href="../index.html" style="display:inline-block;color:#38bdf8;text-decoration:none;margin-bottom:1rem;">&larr; Back to Dashboard</a>
     <h1>Project Size & Technology Analysis</h1>
-    <h2>Kyle Langford | WordPress vs Drupal Comparison (2020-2026)</h2>
+    <h2>Kyle Langford | WordPress vs Drupal Comparison (2025-2026)</h2>
 
     <div class="stats" id="summaryStats"></div>
 
@@ -145,7 +146,7 @@
                 </div>
             </div>
             <div class="card">
-                <h3>Hours by Technology (2020-2026)</h3>
+                <h3>Hours by Technology (2025-2026)</h3>
                 <div class="chart-container">
                     <canvas id="techPieChart"></canvas>
                 </div>
@@ -154,7 +155,7 @@
     </div>
 
     <div class="section">
-        <div class="section-title">Yearly Trends by Technology</div>
+        <div class="section-title">Yearly Trends by Technology (2025-2026)</div>
         <div class="card card-full">
             <div class="chart-container chart-tall">
                 <canvas id="yearlyTrendChart"></canvas>
@@ -191,12 +192,12 @@
         </div>
     </div>
 
-    <p class="generated">Generated from time tracking data | Kyle Langford</p>
+    <p class="generated">Generated from time tracking data | Analysis: 2025-2026</p>
 
     <script>
-        // Project data with CMS classification
+        // Project data with CMS classification (2025-2026 only)
         // Classification based on known tech stack and keyword mentions
-        const projects = [
+        const allProjects = [
             // Drupal projects
             { name: "DAM D10 Update", company: "Dartmouth", hours: 488.8, cms: "Drupal", years: "2024-25" },
             { name: "DAM Monthly Retainer", company: "Dartmouth", hours: 226.0, cms: "Drupal", years: "2025-26" },
@@ -227,6 +228,14 @@
             { name: "Buyer Builder", company: "Rollworks", hours: 66.3, cms: "Other", years: "2022-23" },
         ];
 
+        // Filter to projects active in 2025 or 2026
+        const projects = allProjects.filter(p => {
+            const years = p.years;
+            // Check if year range includes 2025 or 2026
+            if (years.includes('25') || years.includes('26')) return true;
+            return false;
+        });
+
         // Calculate summaries
         const drupalProjects = projects.filter(p => p.cms === "Drupal");
         const wpProjects = projects.filter(p => p.cms === "WordPress");
@@ -243,13 +252,8 @@
         const wpAvg = wpHours / wpProjects.length;
         const aemAvg = aemHours / aemProjects.length;
 
-        // Yearly data
+        // Yearly data (2025-2026 only)
         const yearlyData = {
-            "2020": { drupal: 450, wordpress: 180, aem: 315, other: 150 },
-            "2021": { drupal: 520, wordpress: 210, aem: 230, other: 120 },
-            "2022": { drupal: 480, wordpress: 230, aem: 150, other: 180 },
-            "2023": { drupal: 380, wordpress: 620, aem: 100, other: 130 },
-            "2024": { drupal: 520, wordpress: 480, aem: 140, other: 80 },
             "2025": { drupal: 610, wordpress: 420, aem: 120, other: 200 },
             "2026": { drupal: 380, wordpress: 280, aem: 200, other: 120 }
         };
