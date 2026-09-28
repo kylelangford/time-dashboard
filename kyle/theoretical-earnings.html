@@ -83,8 +83,6 @@
             flex-wrap: wrap;
         }
         .rate-item { display: flex; align-items: center; gap: 0.5rem; }
-        .problem-flag { color: #f87171; font-weight: 600; }
-        .warning-row { background: #7f1d1d40; }
         .back-link { display: inline-block; color: #38bdf8; text-decoration: none; margin-bottom: 1rem; }
         .back-link:hover { text-decoration: underline; }
     </style>
@@ -92,9 +90,9 @@
 <body>
     <a href="../index.html" class="back-link">&larr; Back to Dashboard</a>
     <h1>Billable Efficiency Analysis</h1>
-    <h2>Kyle Langford | Identifying Problem Clients & Projects (2025-2026)</h2>
+    <h2>Kyle Langford | Client & Project Breakdown (2025-2026)</h2>
     <p style="color:#64748b; margin-bottom:1rem; font-size:0.875rem;">
-        Industry benchmark: 75-85% billable efficiency. Projects below 60% need review. Overhead should be &lt;15%.
+        Industry benchmark: 75-85% billable efficiency. Overhead should be &lt;15%.
     </p>
 
     <div class="rate-box">
@@ -133,13 +131,6 @@
         <div class="section-title">Client Breakdown</div>
         <div class="card card-full">
             <table id="clientTable"></table>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Problem Projects (Below 70% Efficiency)</div>
-        <div class="card card-full">
-            <table id="problemTable"></table>
         </div>
     </div>
 
@@ -221,9 +212,6 @@
             return { company, project, total, ...calc };
         }).sort((a, b) => a.efficiency - b.efficiency); // Sort worst to best
 
-        // Problem projects (below 70%)
-        const problemProjects = projects.filter(p => p.efficiency < 70);
-
         // Totals
         const totals = clients.reduce((acc, c) => ({
             hours: acc.hours + c.total,
@@ -264,10 +252,6 @@
             <div class="stat-card">
                 <div class="stat-value red">${lowPct.toFixed(0)}%</div>
                 <div class="stat-label">Overhead Hours</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value red">${problemProjects.length}</div>
-                <div class="stat-label">Problem Projects (&lt;70%)</div>
             </div>
         `;
 
@@ -377,8 +361,8 @@
             </thead>
             <tbody>
                 ${clients.map(c => `
-                    <tr class="${c.efficiency < 60 ? 'warning-row' : ''}">
-                        <td>${c.name} ${c.efficiency < 60 ? '<span class="problem-flag">!</span>' : ''}</td>
+                    <tr>
+                        <td>${c.name}</td>
                         <td class="text-right">${c.total.toLocaleString()}</td>
                         <td class="text-right" style="color:#4ade80;">${c.highPct.toFixed(0)}%</td>
                         <td class="text-right" style="color:#fbbf24;">${c.medPct.toFixed(0)}%</td>
@@ -397,34 +381,6 @@
             </tbody>
         `;
 
-        // Problem projects table
-        document.getElementById('problemTable').innerHTML = problemProjects.length ? `
-            <thead>
-                <tr>
-                    <th>Client</th>
-                    <th>Project</th>
-                    <th class="text-right">Hours</th>
-                    <th class="text-right">Billable</th>
-                    <th class="text-right">Support</th>
-                    <th class="text-right">Overhead</th>
-                    <th class="text-right">Efficiency</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${problemProjects.map(p => `
-                    <tr class="warning-row">
-                        <td>${p.company}</td>
-                        <td>${p.project} <span class="problem-flag">!</span></td>
-                        <td class="text-right">${p.total.toLocaleString()}</td>
-                        <td class="text-right" style="color:#4ade80;">${p.highPct.toFixed(0)}%</td>
-                        <td class="text-right" style="color:#fbbf24;">${p.medPct.toFixed(0)}%</td>
-                        <td class="text-right" style="color:#f87171;">${p.lowPct.toFixed(0)}%</td>
-                        <td class="text-right">${getEfficiencyBadge(p.efficiency)}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        ` : '<tr><td style="color:#4ade80; padding:1rem;">No problem projects found!</td></tr>';
-
         // All projects table
         document.getElementById('projectTable').innerHTML = `
             <thead>
@@ -440,9 +396,9 @@
             </thead>
             <tbody>
                 ${projects.map(p => `
-                    <tr class="${p.efficiency < 60 ? 'warning-row' : ''}">
+                    <tr>
                         <td>${p.company}</td>
-                        <td>${p.project} ${p.efficiency < 60 ? '<span class="problem-flag">!</span>' : ''}</td>
+                        <td>${p.project}</td>
                         <td class="text-right">${p.total.toLocaleString()}</td>
                         <td class="text-right" style="color:#4ade80;">${p.highPct.toFixed(0)}%</td>
                         <td class="text-right" style="color:#fbbf24;">${p.medPct.toFixed(0)}%</td>
