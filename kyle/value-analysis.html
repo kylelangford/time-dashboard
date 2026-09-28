@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Value Analysis (2024-2026) - Kyle Langford</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8; font-weight: 500; }
+        h3 { font-size: 1rem; margin-bottom: 0.75rem; color: #cbd5e1; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #1e293b;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .stat-value { font-size: 1.75rem; font-weight: 700; }
+        .stat-value.green { color: #4ade80; }
+        .stat-value.red { color: #fb7185; }
+        .stat-value.blue { color: #38bdf8; }
+        .stat-value.yellow { color: #fbbf24; }
+        .stat-label { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
+        .section { margin-bottom: 2rem; }
+        .section-title {
+            font-size: 1.5rem;
+            color: #f8fafc;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .card-full { grid-column: 1 / -1; }
+        .chart-container { height: 400px; }
+        .chart-tall { height: 450px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 500; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        tr:hover { background: #334155; }
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-green { background: #16532480; color: #4ade80; }
+        .badge-yellow { background: #71410180; color: #fbbf24; }
+        .badge-red { background: #7f1d1d80; color: #fb7185; }
+        .bar { background: #334155; border-radius: 4px; height: 20px; display: flex; overflow: hidden; }
+        .bar-high { background: #4ade80; height: 100%; }
+        .bar-low { background: #fb7185; height: 100%; }
+        .bar-neutral { background: #64748b; height: 100%; }
+        .legend { display: flex; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .generated { color: #64748b; font-size: 0.75rem; text-align: center; margin-top: 2rem; }
+        .insight-box {
+            background: #1e3a5f;
+            border: 1px solid #38bdf8;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .insight-box h4 { color: #38bdf8; margin-bottom: 0.5rem; }
+        .insight-box ul { margin-left: 1.25rem; }
+        .insight-box li { margin-bottom: 0.25rem; }
+        .date-range {
+            background: #38bdf820;
+            border: 1px solid #38bdf8;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+    <h1>Client Value Analysis</h1>
+    <h2>Kyle Langford | High-Value vs Low-Value Work by Client</h2>
+    <div class="date-range">Filtered: January 2024 - September 2026 (Last 3 Years)</div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value blue">3,409</div>
+            <div class="stat-label">Total Hours (3 Years)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value green">869</div>
+            <div class="stat-label">High-Value Hours (25%)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value red">1,128</div>
+            <div class="stat-label">Low-Value Hours (33%)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value yellow">1,412</div>
+            <div class="stat-label">Neutral/Uncategorized (41%)</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Value Breakdown by Client (2024-2026)</div>
+        <div class="card card-full">
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#4ade80;"></div> High-Value (styling, templates, components, migration, nav, forms)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#fb7185;"></div> Low-Value (meetings, troubleshooting, QA, content updates)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#64748b;"></div> Neutral/Other</div>
+            </div>
+            <div class="chart-container chart-tall">
+                <canvas id="clientValueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Client Efficiency Ranking</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Best Clients (Highest Value Ratio)</h3>
+                <table id="bestClientsTable"></table>
+            </div>
+            <div class="card">
+                <h3>Problem Clients (Highest Overhead)</h3>
+                <table id="worstClientsTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Efficiency Scatter Plot</div>
+        <div class="card card-full">
+            <h3>Client Size vs Value Efficiency</h3>
+            <p style="color:#94a3b8; margin-bottom:1rem; font-size:0.875rem;">Bubble size = total hours. X-axis = high-value %. Y-axis = low-value %. Best clients are bottom-right (high value, low overhead).</p>
+            <div class="chart-container">
+                <canvas id="scatterChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Detailed Breakdown</div>
+        <div class="card card-full">
+            <h3>All Clients - Value Analysis (2024-2026)</h3>
+            <table id="allClientsTable">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th class="text-right">Total Hrs</th>
+                        <th class="text-right">High-Value</th>
+                        <th class="text-right">Low-Value</th>
+                        <th class="text-center">Ratio</th>
+                        <th style="width:200px;">Distribution</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Category Breakdown by Client</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>High-Value Categories</h3>
+                <table id="highValueTable">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th class="text-right">Styling</th>
+                            <th class="text-right">Templates</th>
+                            <th class="text-right">Components</th>
+                            <th class="text-right">Migration</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h3>Low-Value Categories</h3>
+                <table id="lowValueTable">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th class="text-right">Meetings</th>
+                            <th class="text-right">Trouble.</th>
+                            <th class="text-right">QA</th>
+                            <th class="text-right">Updates</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Insights & Recommendations (2024-2026)</div>
+        <div class="grid-3">
+            <div class="insight-box">
+                <h4>Top Performers</h4>
+                <ul>
+                    <li><strong>Penn Stater</strong> - 69% high-value, migration focus</li>
+                    <li><strong>Giggle</strong> - 44% high-value, component work</li>
+                    <li><strong>DAM</strong> - 37% high-value, largest client</li>
+                </ul>
+            </div>
+            <div class="insight-box">
+                <h4>Needs Attention</h4>
+                <ul>
+                    <li><strong>Brunello</strong> - 32% low-value, only 1% high-value</li>
+                    <li><strong>Giggle</strong> - 50% QA burden despite high value</li>
+                    <li><strong>Enel</strong> - 36% low-value, QA heavy</li>
+                </ul>
+            </div>
+            <div class="insight-box">
+                <h4>Action Items</h4>
+                <ul>
+                    <li>Cut Brunello admin meetings by 50%</li>
+                    <li>Bill Giggle QA as separate line item</li>
+                    <li>More DAM/Penn Stater-type projects</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="generated">Generated from time-report.db | Filtered: 2024-01-01 to present</div>
+
+    <script>
+        const clients = [
+            {name: "Dartmouth", total: 806.0, meetings: 44.8, troubleshooting: 39.5, qa: 110.0, updates: 87.8, styling: 78.0, templates: 30.5, components: 55.5, migration: 72.8, navigation: 16.5, forms: 45.5},
+            {name: "SumerSports", total: 404.3, meetings: 17.3, troubleshooting: 26.8, qa: 71.5, updates: 24.8, styling: 18.8, templates: 11.5, components: 2.5, migration: 0.0, navigation: 44.8, forms: 10.0},
+            {name: "Enel", total: 390.0, meetings: 15.5, troubleshooting: 14.0, qa: 72.0, updates: 39.8, styling: 0.0, templates: 0.0, components: 0.5, migration: 23.5, navigation: 0.0, forms: 15.8},
+            {name: "Giggle", total: 349.3, meetings: 10.3, troubleshooting: 16.0, qa: 104.0, updates: 45.5, styling: 61.5, templates: 6.5, components: 40.3, migration: 2.3, navigation: 34.8, forms: 7.0},
+            {name: "Brunello", total: 324.3, meetings: 81.8, troubleshooting: 8.5, qa: 12.8, updates: 2.3, styling: 0.0, templates: 0.0, components: 0.5, migration: 0.5, navigation: 2.0, forms: 1.0},
+            {name: "Linkwell", total: 278.0, meetings: 42.5, troubleshooting: 1.5, qa: 19.5, updates: 8.0, styling: 27.8, templates: 11.0, components: 0.8, migration: 3.0, navigation: 10.3, forms: 11.0},
+            {name: "ReflexMD", total: 251.8, meetings: 26.8, troubleshooting: 10.8, qa: 46.8, updates: 6.3, styling: 21.0, templates: 9.8, components: 0.0, migration: 0.0, navigation: 12.8, forms: 18.5},
+            {name: "Cottonball", total: 171.3, meetings: 5.8, troubleshooting: 0.5, qa: 39.0, updates: 12.5, styling: 9.0, templates: 0.0, components: 19.0, migration: 0.0, navigation: 3.0, forms: 2.3},
+            {name: "Vicinity", total: 164.3, meetings: 3.0, troubleshooting: 12.5, qa: 15.0, updates: 9.8, styling: 20.5, templates: 17.5, components: 0.0, migration: 0.0, navigation: 3.5, forms: 0.0},
+            {name: "Columbia", total: 138.8, meetings: 4.5, troubleshooting: 14.5, qa: 0.3, updates: 3.8, styling: 1.0, templates: 17.5, components: 0.0, migration: 0.0, navigation: 0.0, forms: 2.0},
+            {name: "EforAll", total: 61.0, meetings: 8.8, troubleshooting: 1.5, qa: 8.5, updates: 0.5, styling: 0.0, templates: 1.0, components: 0.0, migration: 0.0, navigation: 0.0, forms: 0.0},
+            {name: "Penn Stater", total: 36.8, meetings: 0.0, troubleshooting: 5.5, qa: 3.0, updates: 7.3, styling: 3.0, templates: 0.0, components: 6.5, migration: 16.0, navigation: 0.0, forms: 0.0},
+            {name: "Gray", total: 32.8, meetings: 0.0, troubleshooting: 2.5, qa: 0.0, updates: 5.5, styling: 0.0, templates: 1.5, components: 0.0, migration: 0.0, navigation: 3.3, forms: 0.0}
+        ];
+
+        // Calculate high/low values
+        clients.forEach(c => {
+            c.highValue = c.styling + c.templates + c.components + c.migration + c.navigation + c.forms;
+            c.lowValue = c.meetings + c.troubleshooting + c.qa + c.updates;
+            c.neutral = c.total - c.highValue - c.lowValue;
+            c.highPct = (c.highValue / c.total * 100).toFixed(1);
+            c.lowPct = (c.lowValue / c.total * 100).toFixed(1);
+            c.ratio = (c.highValue / (c.lowValue || 1)).toFixed(2);
+        });
+
+        const chartColors = { text: '#94a3b8', grid: '#334155' };
+
+        // Stacked Bar Chart
+        new Chart(document.getElementById('clientValueChart'), {
+            type: 'bar',
+            data: {
+                labels: clients.map(c => c.name),
+                datasets: [
+                    { label: 'High-Value', data: clients.map(c => c.highValue), backgroundColor: '#4ade80', borderRadius: 2 },
+                    { label: 'Low-Value', data: clients.map(c => c.lowValue), backgroundColor: '#fb7185', borderRadius: 2 },
+                    { label: 'Neutral', data: clients.map(c => c.neutral > 0 ? c.neutral : 0), backgroundColor: '#64748b', borderRadius: 2 }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'top', labels: { color: chartColors.text } } },
+                scales: {
+                    x: { stacked: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    y: { stacked: true, grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Scatter Chart
+        new Chart(document.getElementById('scatterChart'), {
+            type: 'bubble',
+            data: {
+                datasets: [{
+                    label: 'Clients',
+                    data: clients.map(c => ({
+                        x: parseFloat(c.highPct),
+                        y: parseFloat(c.lowPct),
+                        r: Math.sqrt(c.total) / 2.5,
+                        name: c.name
+                    })),
+                    backgroundColor: clients.map(c => {
+                        if (parseFloat(c.highPct) > parseFloat(c.lowPct)) return '#4ade8080';
+                        if (parseFloat(c.lowPct) > 35) return '#fb718580';
+                        return '#fbbf2480';
+                    }),
+                    borderColor: clients.map(c => {
+                        if (parseFloat(c.highPct) > parseFloat(c.lowPct)) return '#4ade80';
+                        if (parseFloat(c.lowPct) > 35) return '#fb7185';
+                        return '#fbbf24';
+                    }),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.raw.name}: ${ctx.raw.x}% high-value, ${ctx.raw.y}% low-value`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'High-Value %', color: chartColors.text },
+                        grid: { color: chartColors.grid },
+                        ticks: { color: chartColors.text },
+                        min: 0, max: 75
+                    },
+                    y: {
+                        title: { display: true, text: 'Low-Value %', color: chartColors.text },
+                        grid: { color: chartColors.grid },
+                        ticks: { color: chartColors.text },
+                        min: 0, max: 55
+                    }
+                }
+            }
+        });
+
+        // Best Clients Table
+        const bestClients = [...clients].sort((a, b) => parseFloat(b.highPct) - parseFloat(a.highPct));
+        document.getElementById('bestClientsTable').innerHTML = `
+            <tr><th>Client</th><th class="text-right">High-Value %</th><th class="text-right">Low-Value %</th><th class="text-center">Grade</th></tr>
+            ${bestClients.map(c => `<tr>
+                <td>${c.name}</td>
+                <td class="text-right" style="color:#4ade80;">${c.highPct}%</td>
+                <td class="text-right">${c.lowPct}%</td>
+                <td class="text-center"><span class="badge ${parseFloat(c.highPct) > 35 ? 'badge-green' : parseFloat(c.highPct) > 20 ? 'badge-yellow' : 'badge-red'}">${parseFloat(c.highPct) > 35 ? 'A' : parseFloat(c.highPct) > 20 ? 'B' : 'C'}</span></td>
+            </tr>`).join('')}
+        `;
+
+        // Worst Clients Table
+        const worstClients = [...clients].sort((a, b) => parseFloat(b.lowPct) - parseFloat(a.lowPct));
+        document.getElementById('worstClientsTable').innerHTML = `
+            <tr><th>Client</th><th class="text-right">Low-Value %</th><th class="text-right">High-Value %</th><th class="text-center">Risk</th></tr>
+            ${worstClients.map(c => `<tr>
+                <td>${c.name}</td>
+                <td class="text-right" style="color:#fb7185;">${c.lowPct}%</td>
+                <td class="text-right">${c.highPct}%</td>
+                <td class="text-center"><span class="badge ${parseFloat(c.lowPct) > 40 ? 'badge-red' : parseFloat(c.lowPct) > 30 ? 'badge-yellow' : 'badge-green'}">${parseFloat(c.lowPct) > 40 ? 'High' : parseFloat(c.lowPct) > 30 ? 'Med' : 'Low'}</span></td>
+            </tr>`).join('')}
+        `;
+
+        // All Clients Table
+        document.querySelector('#allClientsTable tbody').innerHTML = clients.map(c => `<tr>
+            <td>${c.name}</td>
+            <td class="text-right">${c.total.toLocaleString()}</td>
+            <td class="text-right" style="color:#4ade80;">${c.highValue.toFixed(0)} (${c.highPct}%)</td>
+            <td class="text-right" style="color:#fb7185;">${c.lowValue.toFixed(0)} (${c.lowPct}%)</td>
+            <td class="text-center">${c.ratio}x</td>
+            <td>
+                <div class="bar">
+                    <div class="bar-high" style="width:${c.highPct}%"></div>
+                    <div class="bar-low" style="width:${c.lowPct}%"></div>
+                    <div class="bar-neutral" style="width:${100 - parseFloat(c.highPct) - parseFloat(c.lowPct)}%"></div>
+                </div>
+            </td>
+        </tr>`).join('');
+
+        // High Value Table
+        document.querySelector('#highValueTable tbody').innerHTML = clients.map(c => `<tr>
+            <td>${c.name}</td>
+            <td class="text-right">${c.styling > 0 ? c.styling.toFixed(0) : '-'}</td>
+            <td class="text-right">${c.templates > 0 ? c.templates.toFixed(0) : '-'}</td>
+            <td class="text-right">${c.components > 0 ? c.components.toFixed(0) : '-'}</td>
+            <td class="text-right">${c.migration > 0 ? c.migration.toFixed(0) : '-'}</td>
+        </tr>`).join('');
+
+        // Low Value Table
+        document.querySelector('#lowValueTable tbody').innerHTML = clients.map(c => `<tr>
+            <td>${c.name}</td>
+            <td class="text-right">${c.meetings > 0 ? c.meetings.toFixed(0) : '-'}</td>
+            <td class="text-right">${c.troubleshooting > 0 ? c.troubleshooting.toFixed(0) : '-'}</td>
+            <td class="text-right">${c.qa > 0 ? c.qa.toFixed(0) : '-'}</td>
+            <td class="text-right">${c.updates > 0 ? c.updates.toFixed(0) : '-'}</td>
+        </tr>`).join('');
+    </script>
+</body>
+</html>

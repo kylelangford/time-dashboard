@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retainer Analysis - Kyle Langford</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8; font-weight: 500; }
+        h3 { font-size: 1rem; margin-bottom: 0.75rem; color: #cbd5e1; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #1e293b;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .stat-value { font-size: 1.75rem; font-weight: 700; }
+        .stat-value.green { color: #4ade80; }
+        .stat-value.yellow { color: #fbbf24; }
+        .stat-value.blue { color: #38bdf8; }
+        .stat-value.purple { color: #a78bfa; }
+        .stat-label { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
+        .section { margin-bottom: 2rem; }
+        .section-title {
+            font-size: 1.5rem;
+            color: #f8fafc;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .card-full { grid-column: 1 / -1; }
+        .chart-container { height: 350px; }
+        .chart-tall { height: 450px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 500; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        tr:hover { background: #334155; }
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-green { background: #16532480; color: #4ade80; }
+        .badge-yellow { background: #71410180; color: #fbbf24; }
+        .badge-blue { background: #1e3a8a80; color: #38bdf8; }
+        .badge-purple { background: #4c1d9580; color: #a78bfa; }
+        .badge-gray { background: #33415580; color: #94a3b8; }
+        .heatmap {
+            display: grid;
+            gap: 2px;
+            font-size: 0.65rem;
+        }
+        .heatmap-cell {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .generated { color: #64748b; font-size: 0.75rem; text-align: center; margin-top: 2rem; }
+        .legend { display: flex; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+        .client-row { display: flex; align-items: center; gap: 0.5rem; }
+        .mini-bar {
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            flex: 1;
+            overflow: hidden;
+        }
+        .mini-bar-fill { height: 100%; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Retainer Utilization Analysis</h1>
+    <h2>Kyle Langford | 6 Year Analysis (2020-2026)</h2>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-value blue">422</div>
+            <div class="stat-label">Total Client-Months</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value green">183</div>
+            <div class="stat-label">Months @ 10+ hrs (43%)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value yellow">127</div>
+            <div class="stat-label">Months @ 20+ hrs (30%)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value purple">65</div>
+            <div class="stat-label">Months @ 40+ hrs (15%)</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Retainer Utilization Over Time</div>
+        <div class="card card-full">
+            <h3>Number of Clients Hitting 10hr / 20hr / 40hr Thresholds Each Month</h3>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#4ade80;"></div> 10+ hours</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div> 20+ hours</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div> 40+ hours</div>
+            </div>
+            <div class="chart-container chart-tall">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Client Retainer Consistency</div>
+        <div class="grid-3">
+            <div class="card">
+                <h3>Most Consistent 10hr+ Clients</h3>
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:1rem;">Clients who frequently hit 10+ hours/month</p>
+                <table id="consistent10Table"></table>
+            </div>
+            <div class="card">
+                <h3>Most Consistent 20hr+ Clients</h3>
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:1rem;">Clients who frequently hit 20+ hours/month</p>
+                <table id="consistent20Table"></table>
+            </div>
+            <div class="card">
+                <h3>Most Consistent 30hr+ Clients</h3>
+                <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:1rem;">Clients who frequently hit 30+ hours/month</p>
+                <table id="consistent30Table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Monthly Distribution</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Hour Bucket Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="bucketChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Average Active Clients by Threshold</h3>
+                <div class="chart-container">
+                    <canvas id="avgClientsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">40+ Hours by Technology</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Months Hitting 40+ Hours by CMS</h3>
+                <div class="chart-container">
+                    <canvas id="cms40Chart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Breakdown by Client</h3>
+                <table id="cms40Table">
+                    <thead>
+                        <tr>
+                            <th>CMS</th>
+                            <th>Client</th>
+                            <th class="text-right">40+ Months</th>
+                            <th class="text-right">Total Hours</th>
+                            <th class="text-right">Avg Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background:#0c4a6e40;">
+                            <td><span class="badge badge-blue">Drupal</span></td>
+                            <td>Linkwell Health</td>
+                            <td class="text-right">29</td>
+                            <td class="text-right">2,193</td>
+                            <td class="text-right">75.6</td>
+                        </tr>
+                        <tr style="background:#0c4a6e40;">
+                            <td><span class="badge badge-blue">Drupal</span></td>
+                            <td>Dartmouth</td>
+                            <td class="text-right">9</td>
+                            <td class="text-right">566</td>
+                            <td class="text-right">62.9</td>
+                        </tr>
+                        <tr style="background:#0c4a6e40;">
+                            <td><span class="badge badge-blue">Drupal</span></td>
+                            <td>Penn Stater</td>
+                            <td class="text-right">3</td>
+                            <td class="text-right">145</td>
+                            <td class="text-right">48.2</td>
+                        </tr>
+                        <tr style="background:#16532440;">
+                            <td><span class="badge badge-green">WordPress</span></td>
+                            <td>SumerSports</td>
+                            <td class="text-right">9</td>
+                            <td class="text-right">647</td>
+                            <td class="text-right">71.9</td>
+                        </tr>
+                        <tr style="background:#16532440;">
+                            <td><span class="badge badge-green">WordPress</span></td>
+                            <td>GiggleFiber</td>
+                            <td class="text-right">2</td>
+                            <td class="text-right">120</td>
+                            <td class="text-right">59.8</td>
+                        </tr>
+                        <tr style="background:#16532440;">
+                            <td><span class="badge badge-green">WordPress</span></td>
+                            <td>Vicinity</td>
+                            <td class="text-right">2</td>
+                            <td class="text-right">96</td>
+                            <td class="text-right">47.8</td>
+                        </tr>
+                        <tr style="background:#16532440;">
+                            <td><span class="badge badge-green">WordPress</span></td>
+                            <td>ReflexMD</td>
+                            <td class="text-right">1</td>
+                            <td class="text-right">116</td>
+                            <td class="text-right">116.3</td>
+                        </tr>
+                        <tr style="background:#7c2d1240;">
+                            <td><span class="badge" style="background:#7c2d1280;color:#f97316;">AEM</span></td>
+                            <td>Enel</td>
+                            <td class="text-right">7</td>
+                            <td class="text-right">412</td>
+                            <td class="text-right">58.9</td>
+                        </tr>
+                        <tr style="font-weight:600; border-top:2px solid #334155;">
+                            <td colspan="2">Totals</td>
+                            <td class="text-right">62</td>
+                            <td class="text-right">4,295</td>
+                            <td class="text-right">69.3</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Client Monthly Heatmap (2020-2026)</div>
+        <div class="card card-full">
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#1e293b;"></div> No hours</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#334155;"></div> &lt;10 hrs</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#4ade80;"></div> 10-19 hrs</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div> 20-39 hrs</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f97316;"></div> 40-59 hrs</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> 60+ hrs</div>
+            </div>
+            <div id="heatmapContainer" style="overflow-x: auto;"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">All Client Monthly Breakdown</div>
+        <div class="card card-full">
+            <table id="allClientsTable">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th class="text-right">Total Months</th>
+                        <th class="text-right">10+ hrs</th>
+                        <th class="text-right">20+ hrs</th>
+                        <th class="text-right">40+ hrs</th>
+                        <th class="text-right">Avg/Month</th>
+                        <th class="text-center">Pattern</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="generated">Generated from time-report.db | Analysis: 2020-01 to 2026-09</div>
+
+    <script>
+        // Raw monthly data
+        const rawData = [
+            {company:"Linkwell Health",month:"2020-01",hours:30.5},{company:"Linkwell Health",month:"2020-02",hours:114.3},{company:"Linkwell Health",month:"2020-03",hours:18.5},{company:"Linkwell Health",month:"2020-04",hours:58.3},{company:"Linkwell Health",month:"2020-05",hours:53.5},{company:"Linkwell Health",month:"2020-06",hours:76.8},{company:"Linkwell Health",month:"2020-07",hours:122.8},{company:"Linkwell Health",month:"2020-08",hours:19.8},{company:"Linkwell Health",month:"2020-09",hours:30.8},{company:"Linkwell Health",month:"2020-10",hours:24.3},{company:"Linkwell Health",month:"2020-12",hours:18.5},{company:"Linkwell Health",month:"2021-01",hours:40.0},{company:"Linkwell Health",month:"2021-02",hours:72.3},{company:"Linkwell Health",month:"2021-03",hours:95.0},{company:"Linkwell Health",month:"2021-04",hours:28.5},{company:"Linkwell Health",month:"2021-05",hours:23.3},{company:"Linkwell Health",month:"2021-06",hours:27.5},{company:"Linkwell Health",month:"2021-07",hours:11.3},{company:"Linkwell Health",month:"2021-08",hours:59.8},{company:"Linkwell Health",month:"2021-09",hours:28.8},{company:"Linkwell Health",month:"2021-10",hours:83.5},{company:"Linkwell Health",month:"2021-11",hours:75.5},{company:"Linkwell Health",month:"2021-12",hours:21.5},{company:"Linkwell Health",month:"2022-01",hours:33.0},{company:"Linkwell Health",month:"2022-02",hours:54.8},{company:"Linkwell Health",month:"2022-03",hours:74.5},{company:"Linkwell Health",month:"2022-04",hours:107.8},{company:"Linkwell Health",month:"2022-05",hours:91.0},{company:"Linkwell Health",month:"2022-06",hours:102.0},{company:"Linkwell Health",month:"2022-07",hours:131.8},{company:"Linkwell Health",month:"2022-08",hours:60.8},{company:"Linkwell Health",month:"2022-09",hours:77.3},{company:"Linkwell Health",month:"2022-10",hours:66.5},{company:"Linkwell Health",month:"2022-11",hours:77.0},{company:"Linkwell Health",month:"2022-12",hours:73.8},{company:"Linkwell Health",month:"2023-01",hours:63.5},{company:"Linkwell Health",month:"2023-02",hours:79.0},{company:"Linkwell Health",month:"2023-03",hours:85.8},{company:"Linkwell Health",month:"2023-04",hours:32.5},{company:"Linkwell Health",month:"2023-05",hours:40.0},{company:"Linkwell Health",month:"2023-06",hours:46.0},{company:"Linkwell Health",month:"2023-07",hours:19.8},{company:"Linkwell Health",month:"2023-08",hours:11.8},{company:"Linkwell Health",month:"2024-02",hours:68.3},{company:"Linkwell Health",month:"2024-03",hours:41.5},{company:"Linkwell Health",month:"2024-04",hours:23.0},{company:"Linkwell Health",month:"2024-05",hours:34.8},{company:"Linkwell Health",month:"2024-06",hours:21.0},{company:"Linkwell Health",month:"2024-07",hours:38.5},{company:"Linkwell Health",month:"2024-08",hours:14.8},
+            {company:"Enel NA",month:"2020-01",hours:44.3},{company:"Enel NA",month:"2020-08",hours:36.3},{company:"Enel NA",month:"2020-09",hours:47.5},{company:"Enel NA",month:"2020-10",hours:99.3},{company:"Enel NA",month:"2020-11",hours:57.8},{company:"Enel NA",month:"2020-12",hours:38.8},{company:"Enel NA",month:"2021-01",hours:15.0},{company:"Enel NA",month:"2021-04",hours:54.5},{company:"Enel NA",month:"2021-05",hours:48.8},{company:"Enel NA",month:"2021-07",hours:10.5},{company:"Enel NA",month:"2022-08",hours:20.8},{company:"Enel NA",month:"2023-11",hours:11.5},{company:"Enel NA",month:"2024-02",hours:13.3},{company:"Enel NA",month:"2024-04",hours:13.0},{company:"Enel NA",month:"2024-06",hours:14.0},{company:"Enel NA",month:"2024-12",hours:11.5},{company:"Enel NA",month:"2025-10",hours:28.8},{company:"Enel NA",month:"2025-11",hours:18.5},{company:"Enel NA",month:"2025-12",hours:20.8},{company:"Enel NA",month:"2026-01",hours:34.0},{company:"Enel NA",month:"2026-02",hours:31.0},{company:"Enel NA",month:"2026-03",hours:60.0},{company:"Enel NA",month:"2026-04",hours:18.3},{company:"Enel NA",month:"2026-05",hours:28.3},{company:"Enel NA",month:"2026-06",hours:37.0},
+            {company:"SumerSports",month:"2023-07",hours:45.8},{company:"SumerSports",month:"2023-08",hours:111.0},{company:"SumerSports",month:"2023-09",hours:85.5},{company:"SumerSports",month:"2023-10",hours:95.3},{company:"SumerSports",month:"2023-11",hours:46.8},{company:"SumerSports",month:"2023-12",hours:76.5},{company:"SumerSports",month:"2024-01",hours:88.5},{company:"SumerSports",month:"2024-02",hours:33.3},{company:"SumerSports",month:"2024-03",hours:13.8},{company:"SumerSports",month:"2024-04",hours:56.0},{company:"SumerSports",month:"2024-05",hours:42.0},{company:"SumerSports",month:"2024-06",hours:38.0},{company:"SumerSports",month:"2024-07",hours:20.0},{company:"SumerSports",month:"2024-09",hours:37.5},{company:"SumerSports",month:"2024-10",hours:21.0},{company:"SumerSports",month:"2024-11",hours:10.3},{company:"SumerSports",month:"2024-12",hours:14.8},{company:"SumerSports",month:"2025-03",hours:15.5},
+            {company:"Dartmouth College",month:"2024-10",hours:13.3},{company:"Dartmouth College",month:"2024-11",hours:12.5},{company:"Dartmouth College",month:"2025-04",hours:54.5},{company:"Dartmouth College",month:"2025-05",hours:65.5},{company:"Dartmouth College",month:"2025-06",hours:39.5},{company:"Dartmouth College",month:"2025-07",hours:78.8},{company:"Dartmouth College",month:"2025-08",hours:84.5},{company:"Dartmouth College",month:"2025-09",hours:75.5},{company:"Dartmouth College",month:"2025-10",hours:40.3},{company:"Dartmouth College",month:"2025-12",hours:18.3},{company:"Dartmouth College",month:"2026-01",hours:16.5},{company:"Dartmouth College",month:"2026-02",hours:22.8},{company:"Dartmouth College",month:"2026-03",hours:28.8},{company:"Dartmouth College",month:"2026-04",hours:25.0},{company:"Dartmouth College",month:"2026-05",hours:15.3},{company:"Dartmouth College",month:"2026-06",hours:15.8},{company:"Dartmouth College",month:"2026-07",hours:54.5},{company:"Dartmouth College",month:"2026-08",hours:51.0},{company:"Dartmouth College",month:"2026-09",hours:61.3},
+            {company:"GiggleFiber",month:"2025-11",hours:60.0},{company:"GiggleFiber",month:"2025-12",hours:35.0},{company:"GiggleFiber",month:"2026-01",hours:29.5},{company:"GiggleFiber",month:"2026-02",hours:32.0},{company:"GiggleFiber",month:"2026-03",hours:14.0},{company:"GiggleFiber",month:"2026-04",hours:27.8},{company:"GiggleFiber",month:"2026-05",hours:18.8},{company:"GiggleFiber",month:"2026-06",hours:34.0},{company:"GiggleFiber",month:"2026-07",hours:59.5},{company:"GiggleFiber",month:"2026-08",hours:20.5},{company:"GiggleFiber",month:"2026-09",hours:18.3},
+            {company:"Penn Stater",month:"2020-11",hours:42.0},{company:"Penn Stater",month:"2020-12",hours:62.3},{company:"Penn Stater",month:"2021-01",hours:27.5},{company:"Penn Stater",month:"2021-02",hours:13.0},{company:"Penn Stater",month:"2021-03",hours:29.0},{company:"Penn Stater",month:"2021-04",hours:28.5},{company:"Penn Stater",month:"2021-05",hours:40.3},{company:"Penn Stater",month:"2024-11",hours:23.8},
+            {company:"Vicinity Energy",month:"2020-09",hours:35.8},{company:"Vicinity Energy",month:"2020-10",hours:12.0},{company:"Vicinity Energy",month:"2021-02",hours:13.1},{company:"Vicinity Energy",month:"2021-09",hours:55.1},{company:"Vicinity Energy",month:"2021-10",hours:14.3},{company:"Vicinity Energy",month:"2024-03",hours:40.5},{company:"Vicinity Energy",month:"2025-02",hours:30.3},{company:"Vicinity Energy",month:"2025-04",hours:19.5},{company:"Vicinity Energy",month:"2025-05",hours:15.3},{company:"Vicinity Energy",month:"2026-04",hours:19.5},{company:"Vicinity Energy",month:"2026-05",hours:11.0},
+            {company:"ReflexMD",month:"2024-07",hours:32.0},{company:"ReflexMD",month:"2024-08",hours:116.3},{company:"ReflexMD",month:"2024-09",hours:38.8},{company:"ReflexMD",month:"2024-12",hours:21.8},{company:"ReflexMD",month:"2025-01",hours:13.8},{company:"ReflexMD",month:"2025-02",hours:19.8},
+            {company:"Cottonball",month:"2025-06",hours:81.3},{company:"Cottonball",month:"2025-07",hours:75.8},
+            {company:"Columbia University",month:"2023-04",hours:22.3},{company:"Columbia University",month:"2023-05",hours:22.8},{company:"Columbia University",month:"2024-11",hours:26.0},{company:"Columbia University",month:"2024-12",hours:27.5},{company:"Columbia University",month:"2025-01",hours:19.3},{company:"Columbia University",month:"2025-02",hours:27.5},{company:"Columbia University",month:"2025-03",hours:28.0},
+            {company:"Mental",month:"2021-12",hours:17.0},{company:"Mental",month:"2022-02",hours:10.5},{company:"Mental",month:"2023-04",hours:27.5},{company:"Mental",month:"2023-05",hours:20.8},{company:"Mental",month:"2023-06",hours:23.3},
+            {company:"EforAll",month:"2025-08",hours:23.3},{company:"EforAll",month:"2025-09",hours:17.8},
+            {company:"Safewaze",month:"2020-08",hours:12.3},{company:"Safewaze",month:"2021-08",hours:13.8},{company:"Safewaze",month:"2022-01",hours:32.8},{company:"Safewaze",month:"2022-02",hours:27.0},
+            {company:"Rollworks",month:"2022-10",hours:17.5},{company:"Rollworks",month:"2022-11",hours:16.5},{company:"Rollworks",month:"2022-12",hours:20.3},
+            {company:"Gray Associates",month:"2022-10",hours:26.3},{company:"Gray Associates",month:"2025-09",hours:19.5},
+            {company:"BlueZones",month:"2021-10",hours:46.8},
+            {company:"Lightfully",month:"2022-03",hours:14.3},
+            {company:"Non Profit Quarterly",month:"2020-05",hours:22.3},{company:"Non Profit Quarterly",month:"2020-03",hours:12.3},{company:"Non Profit Quarterly",month:"2025-04",hours:10.0},
+            {company:"Lexia Learning",month:"2021-07",hours:18.8},
+            {company:"Roxie Golf, LLC",month:"2026-05",hours:12.3}
+        ];
+
+        // Process data
+        const clientStats = {};
+        const monthlyTotals = {};
+
+        rawData.forEach(d => {
+            // Client stats
+            if (!clientStats[d.company]) {
+                clientStats[d.company] = { months: 0, m10: 0, m20: 0, m30: 0, m40: 0, totalHours: 0, monthList: [] };
+            }
+            clientStats[d.company].months++;
+            clientStats[d.company].totalHours += d.hours;
+            clientStats[d.company].monthList.push({month: d.month, hours: d.hours});
+            if (d.hours >= 10) clientStats[d.company].m10++;
+            if (d.hours >= 20) clientStats[d.company].m20++;
+            if (d.hours >= 30) clientStats[d.company].m30++;
+            if (d.hours >= 40) clientStats[d.company].m40++;
+
+            // Monthly totals
+            if (!monthlyTotals[d.month]) {
+                monthlyTotals[d.month] = { c10: 0, c20: 0, c40: 0, total: 0 };
+            }
+            monthlyTotals[d.month].total++;
+            if (d.hours >= 10) monthlyTotals[d.month].c10++;
+            if (d.hours >= 20) monthlyTotals[d.month].c20++;
+            if (d.hours >= 40) monthlyTotals[d.month].c40++;
+        });
+
+        // Sort months chronologically
+        const sortedMonths = Object.keys(monthlyTotals).sort();
+        const chartColors = { text: '#94a3b8', grid: '#334155' };
+
+        // Trend Chart
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: sortedMonths,
+                datasets: [
+                    { label: '10+ hrs', data: sortedMonths.map(m => monthlyTotals[m].c10), borderColor: '#4ade80', backgroundColor: '#4ade8020', fill: true, tension: 0.3 },
+                    { label: '20+ hrs', data: sortedMonths.map(m => monthlyTotals[m].c20), borderColor: '#fbbf24', backgroundColor: '#fbbf2420', fill: true, tension: 0.3 },
+                    { label: '40+ hrs', data: sortedMonths.map(m => monthlyTotals[m].c40), borderColor: '#a78bfa', backgroundColor: '#a78bfa20', fill: true, tension: 0.3 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: chartColors.text } } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text, maxRotation: 45 } }
+                }
+            }
+        });
+
+        // Bucket distribution
+        const buckets = { '<5': 0, '5-9': 0, '10-19': 0, '20-39': 0, '40-59': 0, '60+': 0 };
+        rawData.forEach(d => {
+            if (d.hours < 5) buckets['<5']++;
+            else if (d.hours < 10) buckets['5-9']++;
+            else if (d.hours < 20) buckets['10-19']++;
+            else if (d.hours < 40) buckets['20-39']++;
+            else if (d.hours < 60) buckets['40-59']++;
+            else buckets['60+']++;
+        });
+
+        new Chart(document.getElementById('bucketChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(buckets),
+                datasets: [{ label: 'Client-Months', data: Object.values(buckets), backgroundColor: ['#64748b', '#94a3b8', '#4ade80', '#fbbf24', '#f97316', '#ef4444'], borderRadius: 4 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // Average clients by year
+        const yearlyAvg = {};
+        sortedMonths.forEach(m => {
+            const year = m.slice(0, 4);
+            if (!yearlyAvg[year]) yearlyAvg[year] = { c10: [], c20: [], c40: [] };
+            yearlyAvg[year].c10.push(monthlyTotals[m].c10);
+            yearlyAvg[year].c20.push(monthlyTotals[m].c20);
+            yearlyAvg[year].c40.push(monthlyTotals[m].c40);
+        });
+        const years = Object.keys(yearlyAvg).sort();
+        const avg = arr => arr.length ? (arr.reduce((a,b) => a+b, 0) / arr.length).toFixed(1) : 0;
+
+        new Chart(document.getElementById('avgClientsChart'), {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [
+                    { label: 'Avg 10+ clients/mo', data: years.map(y => avg(yearlyAvg[y].c10)), backgroundColor: '#4ade80', borderRadius: 4 },
+                    { label: 'Avg 20+ clients/mo', data: years.map(y => avg(yearlyAvg[y].c20)), backgroundColor: '#fbbf24', borderRadius: 4 },
+                    { label: 'Avg 40+ clients/mo', data: years.map(y => avg(yearlyAvg[y].c40)), backgroundColor: '#a78bfa', borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: chartColors.text } } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: chartColors.grid }, ticks: { color: chartColors.text } },
+                    x: { grid: { display: false }, ticks: { color: chartColors.text } }
+                }
+            }
+        });
+
+        // CMS 40+ hours chart
+        new Chart(document.getElementById('cms40Chart'), {
+            type: 'bar',
+            data: {
+                labels: ['Drupal', 'WordPress', 'AEM'],
+                datasets: [{
+                    label: '40+ Hour Months',
+                    data: [41, 14, 7],
+                    backgroundColor: ['#38bdf8', '#4ade80', '#f97316'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const hours = [2903, 979, 412];
+                                return `Total: ${hours[context.dataIndex].toLocaleString()} hrs`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: chartColors.grid },
+                        ticks: { color: chartColors.text },
+                        title: { display: true, text: 'Months with 40+ hours', color: chartColors.text }
+                    },
+                    y: { grid: { display: false }, ticks: { color: chartColors.text, font: { size: 14, weight: 'bold' } } }
+                }
+            }
+        });
+
+        // Consistent 10hr clients
+        const sorted10 = Object.entries(clientStats)
+            .map(([name, stats]) => ({ name, ...stats, rate10: stats.m10 / stats.months }))
+            .filter(c => c.m10 >= 3)
+            .sort((a, b) => b.m10 - a.m10);
+
+        document.getElementById('consistent10Table').innerHTML = `
+            <tr><th>Client</th><th class="text-right">10+ Months</th><th class="text-right">Total Months</th><th class="text-right">Rate</th></tr>
+            ${sorted10.slice(0, 10).map(c => `<tr>
+                <td>${c.name}</td>
+                <td class="text-right" style="color:#4ade80;">${c.m10}</td>
+                <td class="text-right">${c.months}</td>
+                <td class="text-right">${(c.rate10 * 100).toFixed(0)}%</td>
+            </tr>`).join('')}
+        `;
+
+        // Consistent 20hr clients
+        const sorted20 = Object.entries(clientStats)
+            .map(([name, stats]) => ({ name, ...stats, rate20: stats.m20 / stats.months }))
+            .filter(c => c.m20 >= 2)
+            .sort((a, b) => b.m20 - a.m20);
+
+        document.getElementById('consistent20Table').innerHTML = `
+            <tr><th>Client</th><th class="text-right">20+ Months</th><th class="text-right">Total Months</th><th class="text-right">Rate</th></tr>
+            ${sorted20.slice(0, 10).map(c => `<tr>
+                <td>${c.name}</td>
+                <td class="text-right" style="color:#fbbf24;">${c.m20}</td>
+                <td class="text-right">${c.months}</td>
+                <td class="text-right">${(c.rate20 * 100).toFixed(0)}%</td>
+            </tr>`).join('')}
+        `;
+
+        // Consistent 30hr clients
+        const sorted30 = Object.entries(clientStats)
+            .map(([name, stats]) => ({ name, ...stats, rate30: stats.m30 / stats.months }))
+            .filter(c => c.m30 >= 1)
+            .sort((a, b) => b.m30 - a.m30);
+
+        document.getElementById('consistent30Table').innerHTML = `
+            <tr><th>Client</th><th class="text-right">30+ Months</th><th class="text-right">Total Months</th><th class="text-right">Rate</th></tr>
+            ${sorted30.slice(0, 10).map(c => `<tr>
+                <td>${c.name}</td>
+                <td class="text-right" style="color:#f97316;">${c.m30}</td>
+                <td class="text-right">${c.months}</td>
+                <td class="text-right">${(c.rate30 * 100).toFixed(0)}%</td>
+            </tr>`).join('')}
+        `;
+
+        // All clients table
+        const allClients = Object.entries(clientStats)
+            .map(([name, stats]) => ({ name, ...stats, avg: stats.totalHours / stats.months }))
+            .sort((a, b) => b.totalHours - a.totalHours);
+
+        function getPattern(c) {
+            if (c.m40 > c.months * 0.3) return '<span class="badge badge-purple">Heavy</span>';
+            if (c.m20 > c.months * 0.5) return '<span class="badge badge-yellow">20hr Retainer</span>';
+            if (c.m10 > c.months * 0.5) return '<span class="badge badge-green">10hr Retainer</span>';
+            if (c.months <= 3) return '<span class="badge badge-blue">Project</span>';
+            return '<span class="badge badge-gray">Sporadic</span>';
+        }
+
+        document.querySelector('#allClientsTable tbody').innerHTML = allClients.map(c => `<tr>
+            <td>${c.name}</td>
+            <td class="text-right">${c.months}</td>
+            <td class="text-right" style="color:#4ade80;">${c.m10}</td>
+            <td class="text-right" style="color:#fbbf24;">${c.m20}</td>
+            <td class="text-right" style="color:#a78bfa;">${c.m40}</td>
+            <td class="text-right">${c.avg.toFixed(1)}</td>
+            <td class="text-center">${getPattern(c)}</td>
+        </tr>`).join('');
+
+        // Heatmap (2020-2026)
+        const heatmapMonths = sortedMonths.filter(m => m >= '2020-01');
+        const heatmapClients = allClients.filter(c => c.monthList.some(m => m.month >= '2020-01')).slice(0, 15);
+
+        function getHeatColor(hours) {
+            if (!hours) return '#1e293b';
+            if (hours < 10) return '#334155';
+            if (hours < 20) return '#4ade80';
+            if (hours < 40) return '#fbbf24';
+            if (hours < 60) return '#f97316';
+            return '#ef4444';
+        }
+
+        // Group months by year for header
+        const yearGroups = {};
+        heatmapMonths.forEach(m => {
+            const year = m.slice(0, 4);
+            if (!yearGroups[year]) yearGroups[year] = 0;
+            yearGroups[year]++;
+        });
+
+        let heatmapHTML = `<table style="font-size:0.75rem;">`;
+        // Year header row
+        heatmapHTML += `<tr><th style="min-width:120px;"></th>`;
+        Object.entries(yearGroups).forEach(([year, count]) => {
+            heatmapHTML += `<th colspan="${count}" class="text-center" style="background:#334155; color:#f8fafc; font-weight:600; border-bottom:2px solid #4ade80;">${year}</th>`;
+        });
+        heatmapHTML += '</tr>';
+        // Month header row
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        heatmapHTML += `<tr><th style="min-width:120px;"></th>`;
+        heatmapMonths.forEach(m => {
+            const monthNum = parseInt(m.slice(5)) - 1;
+            heatmapHTML += `<th class="text-center" style="min-width:45px;">${monthNames[monthNum]}</th>`;
+        });
+        heatmapHTML += '</tr>';
+
+        heatmapClients.forEach(c => {
+            const monthMap = {};
+            c.monthList.forEach(m => { monthMap[m.month] = m.hours; });
+            heatmapHTML += `<tr><td>${c.name}</td>`;
+            heatmapMonths.forEach(m => {
+                const hours = monthMap[m] || 0;
+                const color = getHeatColor(hours);
+                heatmapHTML += `<td class="text-center" style="background:${color}; color:${hours >= 10 ? '#000' : '#666'};">${hours ? hours.toFixed(0) : ''}</td>`;
+            });
+            heatmapHTML += '</tr>';
+        });
+        heatmapHTML += '</table>';
+        document.getElementById('heatmapContainer').innerHTML = heatmapHTML;
+    </script>
+</body>
+</html>

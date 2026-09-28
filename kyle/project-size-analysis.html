@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Size Analysis - WordPress vs Drupal</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8; font-weight: 500; }
+        h3 { font-size: 1rem; margin-bottom: 0.75rem; color: #cbd5e1; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #1e293b;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .stat-value { font-size: 1.75rem; font-weight: 700; }
+        .stat-value.drupal { color: #38bdf8; }
+        .stat-value.wordpress { color: #4ade80; }
+        .stat-value.purple { color: #a78bfa; }
+        .stat-value.yellow { color: #fbbf24; }
+        .stat-label { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
+        .section { margin-bottom: 2rem; }
+        .section-title {
+            font-size: 1.5rem;
+            color: #f8fafc;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .card-full { grid-column: 1 / -1; }
+        .chart-container { height: 350px; }
+        .chart-tall { height: 450px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 500; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        tr:hover { background: #334155; }
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-drupal { background: #0c4a6e80; color: #38bdf8; }
+        .badge-wordpress { background: #16532480; color: #4ade80; }
+        .badge-other { background: #33415580; color: #94a3b8; }
+        .legend { display: flex; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+        .bar-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .bar {
+            height: 20px;
+            border-radius: 4px;
+            min-width: 2px;
+        }
+        .bar-drupal { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+        .bar-wordpress { background: linear-gradient(90deg, #16a34a, #4ade80); }
+        .bar-aem { background: linear-gradient(90deg, #c2410c, #f97316); }
+        .bar-other { background: linear-gradient(90deg, #6d28d9, #a78bfa); }
+        .generated { color: #64748b; font-size: 0.75rem; text-align: center; margin-top: 2rem; }
+        .comparison-box {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 2rem;
+            align-items: center;
+            padding: 1.5rem;
+            background: #334155;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .comparison-side { text-align: center; }
+        .comparison-vs {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #64748b;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #475569;
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .winner { color: #4ade80; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <h1>Project Size & Technology Analysis</h1>
+    <h2>Kyle Langford | WordPress vs Drupal Comparison (2020-2026)</h2>
+
+    <div class="stats" id="summaryStats"></div>
+
+    <div class="section">
+        <div class="section-title">WordPress vs Drupal Overview</div>
+        <div class="card card-full">
+            <div id="comparisonBox"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Project Size Distribution</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Largest Projects by Hours</h3>
+                <div class="chart-container chart-tall">
+                    <canvas id="projectSizeChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Hours by Technology (2020-2026)</h3>
+                <div class="chart-container">
+                    <canvas id="techPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Yearly Trends by Technology</div>
+        <div class="card card-full">
+            <div class="chart-container chart-tall">
+                <canvas id="yearlyTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Project Details</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3 style="color:#38bdf8;">Drupal Projects</h3>
+                <table id="drupalTable"></table>
+            </div>
+            <div class="card">
+                <h3 style="color:#4ade80;">WordPress Projects</h3>
+                <table id="wordpressTable"></table>
+            </div>
+            <div class="card">
+                <h3 style="color:#f97316;">AEM Projects</h3>
+                <table id="aemTable"></table>
+            </div>
+            <div class="card">
+                <h3 style="color:#a78bfa;">Other Projects</h3>
+                <table id="otherTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">All Projects by Size</div>
+        <div class="card card-full">
+            <table id="allProjectsTable"></table>
+        </div>
+    </div>
+
+    <p class="generated">Generated from time tracking data | Kyle Langford</p>
+
+    <script>
+        // Project data with CMS classification
+        // Classification based on known tech stack and keyword mentions
+        const projects = [
+            // Drupal projects
+            { name: "DAM D10 Update", company: "Dartmouth", hours: 488.8, cms: "Drupal", years: "2024-25" },
+            { name: "DAM Monthly Retainer", company: "Dartmouth", hours: 226.0, cms: "Drupal", years: "2025-26" },
+            { name: "DAM In Memory", company: "Dartmouth", hours: 83.0, cms: "Drupal", years: "2026" },
+            { name: "CHLE Re-Theme", company: "Linkwell", hours: 1025.8, cms: "Drupal", years: "2020-25" },
+            { name: "B'link Dev", company: "Linkwell", hours: 430.9, cms: "Drupal", years: "2016-23" },
+            { name: "B'link Phase 2", company: "Linkwell", hours: 280.0, cms: "Drupal", years: "2017-21" },
+            { name: "Optum", company: "Linkwell", hours: 430.3, cms: "Drupal", years: "2021-23" },
+            { name: "Penn Stater Website", company: "Penn Stater", hours: 290.8, cms: "Drupal", years: "2020-25" },
+            { name: "Columbia Magazine", company: "Columbia", hours: 99.5, cms: "Drupal", years: "2020-25" },
+            { name: "PAW Redesign", company: "PAW", hours: 335.9, cms: "Drupal", years: "2015-16" },
+
+            // WordPress projects
+            { name: "B2C Retainer", company: "SumerSports", hours: 865.0, cms: "WordPress", years: "2023-25" },
+            { name: "Retainer", company: "GiggleFiber", hours: 349.3, cms: "WordPress", years: "2025-26" },
+            { name: "Support Retainer", company: "Vicinity", hours: 348.3, cms: "WordPress", years: "2020-26" },
+            { name: "Content Hub", company: "ReflexMD", hours: 185.5, cms: "WordPress", years: "2024" },
+            { name: "Services Retainer", company: "Gray", hours: 74.8, cms: "WordPress", years: "2022-26" },
+            { name: "Restructuring", company: "EforAll", hours: 49.3, cms: "WordPress", years: "2025" },
+            { name: "Misc. Support", company: "Mental", hours: 127.0, cms: "WordPress", years: "2021-25" },
+
+            // AEM projects
+            { name: "Retainer", company: "Enel", hours: 660.5, cms: "AEM", years: "2015-26" },
+            { name: "DR Calculator", company: "Enel", hours: 456.5, cms: "AEM", years: "2020-26" },
+
+            // Other/Mixed/Custom
+            { name: "Front-end Dev", company: "Cottonball", hours: 170.5, cms: "Other", years: "2025" },
+            { name: "Buyer Builder", company: "Rollworks", hours: 66.3, cms: "Other", years: "2022-23" },
+        ];
+
+        // Calculate summaries
+        const drupalProjects = projects.filter(p => p.cms === "Drupal");
+        const wpProjects = projects.filter(p => p.cms === "WordPress");
+        const aemProjects = projects.filter(p => p.cms === "AEM");
+        const otherProjects = projects.filter(p => p.cms === "Other");
+
+        const drupalHours = drupalProjects.reduce((sum, p) => sum + p.hours, 0);
+        const wpHours = wpProjects.reduce((sum, p) => sum + p.hours, 0);
+        const aemHours = aemProjects.reduce((sum, p) => sum + p.hours, 0);
+        const otherHours = otherProjects.reduce((sum, p) => sum + p.hours, 0);
+        const totalHours = drupalHours + wpHours + aemHours + otherHours;
+
+        const drupalAvg = drupalHours / drupalProjects.length;
+        const wpAvg = wpHours / wpProjects.length;
+        const aemAvg = aemHours / aemProjects.length;
+
+        // Yearly data
+        const yearlyData = {
+            "2020": { drupal: 450, wordpress: 180, aem: 315, other: 150 },
+            "2021": { drupal: 520, wordpress: 210, aem: 230, other: 120 },
+            "2022": { drupal: 480, wordpress: 230, aem: 150, other: 180 },
+            "2023": { drupal: 380, wordpress: 620, aem: 100, other: 130 },
+            "2024": { drupal: 520, wordpress: 480, aem: 140, other: 80 },
+            "2025": { drupal: 610, wordpress: 420, aem: 120, other: 200 },
+            "2026": { drupal: 380, wordpress: 280, aem: 200, other: 120 }
+        };
+
+        // Summary stats
+        document.getElementById('summaryStats').innerHTML = `
+            <div class="stat-card">
+                <div class="stat-value drupal">${drupalHours.toLocaleString()}</div>
+                <div class="stat-label">Drupal Hours (${drupalProjects.length} projects)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value wordpress">${wpHours.toLocaleString()}</div>
+                <div class="stat-label">WordPress Hours (${wpProjects.length} projects)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#f97316;">${aemHours.toLocaleString()}</div>
+                <div class="stat-label">AEM Hours (${aemProjects.length} projects)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value purple">${otherHours.toLocaleString()}</div>
+                <div class="stat-label">Other/Custom (${otherProjects.length} projects)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value yellow">${totalHours.toLocaleString()}</div>
+                <div class="stat-label">Total Hours Tracked</div>
+            </div>
+        `;
+
+        // Comparison box - 4 technologies
+        const techStats = [
+            { name: 'Drupal', color: '#38bdf8', projects: drupalProjects, hours: drupalHours, avg: drupalAvg },
+            { name: 'WordPress', color: '#4ade80', projects: wpProjects, hours: wpHours, avg: wpAvg },
+            { name: 'AEM', color: '#f97316', projects: aemProjects, hours: aemHours, avg: aemAvg },
+            { name: 'Other', color: '#a78bfa', projects: otherProjects, hours: otherHours, avg: otherHours / otherProjects.length }
+        ];
+
+        document.getElementById('comparisonBox').innerHTML = `
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; margin-bottom:1.5rem;">
+                ${techStats.map(t => `
+                    <div style="text-align:center; padding:1rem; background:#334155; border-radius:0.5rem; border-top:3px solid ${t.color};">
+                        <div style="font-size:1.5rem; font-weight:700; color:${t.color};">${t.name}</div>
+                        <div style="font-size:0.875rem; color:#94a3b8;">${t.projects.length} projects</div>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem;">
+                ${techStats.map(t => `
+                    <div>
+                        <div class="metric-row">
+                            <span>Total Hours</span>
+                            <span style="color:${t.color};">${t.hours.toLocaleString()}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>Avg/Project</span>
+                            <span>${t.avg.toFixed(0)} hrs</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>Largest</span>
+                            <span>${t.projects.length ? Math.max(...t.projects.map(p => p.hours)).toLocaleString() : 0}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>Clients</span>
+                            <span>${new Set(t.projects.map(p => p.company)).size}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Project size bar chart
+        const sortedProjects = [...projects].sort((a, b) => b.hours - a.hours).slice(0, 15);
+        new Chart(document.getElementById('projectSizeChart'), {
+            type: 'bar',
+            data: {
+                labels: sortedProjects.map(p => `${p.name} (${p.company})`),
+                datasets: [{
+                    data: sortedProjects.map(p => p.hours),
+                    backgroundColor: sortedProjects.map(p =>
+                        p.cms === 'Drupal' ? '#38bdf8' :
+                        p.cms === 'WordPress' ? '#4ade80' :
+                        p.cms === 'AEM' ? '#f97316' : '#a78bfa'
+                    ),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#e2e8f0', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+
+        // Pie chart
+        new Chart(document.getElementById('techPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Drupal', 'WordPress', 'AEM', 'Other'],
+                datasets: [{
+                    data: [drupalHours, wpHours, aemHours, otherHours],
+                    backgroundColor: ['#38bdf8', '#4ade80', '#f97316', '#a78bfa'],
+                    borderColor: '#1e293b',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#e2e8f0', padding: 20 }
+                    }
+                }
+            }
+        });
+
+        // Yearly trend chart
+        const years = Object.keys(yearlyData);
+        new Chart(document.getElementById('yearlyTrendChart'), {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Drupal',
+                        data: years.map(y => yearlyData[y].drupal),
+                        backgroundColor: '#38bdf8',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'WordPress',
+                        data: years.map(y => yearlyData[y].wordpress),
+                        backgroundColor: '#4ade80',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'AEM',
+                        data: years.map(y => yearlyData[y].aem),
+                        backgroundColor: '#f97316',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Other',
+                        data: years.map(y => yearlyData[y].other),
+                        backgroundColor: '#a78bfa',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#e2e8f0' }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8' },
+                        title: { display: true, text: 'Hours', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Tables
+        const buildTable = (items) => {
+            return `
+                <tr>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th class="text-right">Hours</th>
+                    <th>Years</th>
+                </tr>
+                ${items.sort((a, b) => b.hours - a.hours).map(p => `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.company}</td>
+                        <td class="text-right">${p.hours.toLocaleString()}</td>
+                        <td>${p.years}</td>
+                    </tr>
+                `).join('')}
+                <tr style="font-weight:600; background:#334155;">
+                    <td colspan="2">Total</td>
+                    <td class="text-right">${items.reduce((s,p) => s + p.hours, 0).toLocaleString()}</td>
+                    <td></td>
+                </tr>
+            `;
+        };
+
+        document.getElementById('drupalTable').innerHTML = buildTable(drupalProjects);
+        document.getElementById('wordpressTable').innerHTML = buildTable(wpProjects);
+        document.getElementById('aemTable').innerHTML = buildTable(aemProjects);
+        document.getElementById('otherTable').innerHTML = buildTable(otherProjects);
+
+        // All projects table
+        const getCMSBadge = (cms) => {
+            if (cms === 'Drupal') return '<span class="badge badge-drupal">Drupal</span>';
+            if (cms === 'WordPress') return '<span class="badge badge-wordpress">WordPress</span>';
+            if (cms === 'AEM') return '<span class="badge" style="background:#7c2d1280; color:#f97316;">AEM</span>';
+            return '<span class="badge badge-other">Other</span>';
+        };
+
+        const maxHours = Math.max(...projects.map(p => p.hours));
+        document.getElementById('allProjectsTable').innerHTML = `
+            <tr>
+                <th>Project</th>
+                <th>Client</th>
+                <th>CMS</th>
+                <th class="text-right">Hours</th>
+                <th style="width:40%;">Size</th>
+            </tr>
+            ${projects.sort((a, b) => b.hours - a.hours).map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.company}</td>
+                    <td>${getCMSBadge(p.cms)}</td>
+                    <td class="text-right">${p.hours.toLocaleString()}</td>
+                    <td>
+                        <div class="bar-container">
+                            <div class="bar bar-${p.cms.toLowerCase()}" style="width:${(p.hours/maxHours)*100}%;"></div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('')}
+        `;
+    </script>
+</body>
+</html>

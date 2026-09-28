@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theoretical Earnings Analysis - Kyle Langford</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8; font-weight: 500; }
+        h3 { font-size: 1rem; margin-bottom: 0.75rem; color: #cbd5e1; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #1e293b;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .stat-value { font-size: 1.75rem; font-weight: 700; }
+        .stat-value.green { color: #4ade80; }
+        .stat-value.yellow { color: #fbbf24; }
+        .stat-value.blue { color: #38bdf8; }
+        .stat-value.red { color: #f87171; }
+        .stat-value.purple { color: #a78bfa; }
+        .stat-label { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
+        .section { margin-bottom: 2rem; }
+        .section-title {
+            font-size: 1.5rem;
+            color: #f8fafc;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .card-full { grid-column: 1 / -1; }
+        .chart-container { height: 400px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 500; }
+        .text-right { text-align: right; }
+        tr:hover { background: #334155; }
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-high { background: #16532480; color: #4ade80; }
+        .badge-medium { background: #71410180; color: #fbbf24; }
+        .badge-low { background: #7f1d1d80; color: #f87171; }
+        .generated { color: #64748b; font-size: 0.75rem; text-align: center; margin-top: 2rem; }
+        .legend { display: flex; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+        .rate-box {
+            background: #334155;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .rate-item { display: flex; align-items: center; gap: 0.5rem; }
+        .efficiency-bar {
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100px;
+        }
+        .efficiency-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Theoretical Earnings Analysis</h1>
+    <h2>Kyle Langford | Realization Rate Model (2020-2026)</h2>
+    <p style="color:#64748b; margin-bottom:1rem; font-size:0.875rem;">
+        Industry benchmark: 75-85% realization rate for consulting. Overhead should be &lt;15% of hours.
+    </p>
+
+    <div class="rate-box">
+        <div class="rate-item">
+            <strong>Rate:</strong> $135/hr
+        </div>
+        <div class="rate-item">
+            <span class="badge badge-high">Billable</span> 95% (dev, design, styling, client calls)
+        </div>
+        <div class="rate-item">
+            <span class="badge badge-medium">Support</span> 70% (QA, testing, bugs, troubleshooting)
+        </div>
+        <div class="rate-item">
+            <span class="badge badge-low">Overhead</span> 10% (admin, planning, scrum, standups, setup, env)
+        </div>
+    </div>
+    <div class="rate-box" style="margin-top:0.5rem;">
+        <div class="rate-item">
+            <strong>Overtime Penalty:</strong>
+        </div>
+        <div class="rate-item">40+ hrs: -2%</div>
+        <div class="rate-item">50+ hrs: -4%</div>
+        <div class="rate-item">60+ hrs: -6%</div>
+        <div class="rate-item">70+ hrs: -8%</div>
+        <div class="rate-item">80+ hrs: -10%</div>
+    </div>
+
+    <div class="stats" id="summaryStats"></div>
+
+    <div class="section">
+        <div class="section-title">Earnings by Client</div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Theoretical Earnings by Client</h3>
+                <div class="chart-container">
+                    <canvas id="clientEarningsChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Net Efficiency by Client (after penalties)</h3>
+                <div class="chart-container">
+                    <canvas id="efficiencyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Client Breakdown</div>
+        <div class="card card-full">
+            <table id="clientTable"></table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Project Breakdown</div>
+        <div class="card card-full">
+            <table id="projectTable"></table>
+        </div>
+    </div>
+
+    <p class="generated">Generated from time tracking data | Kyle Langford</p>
+
+    <script>
+        const RATE = 135;
+        const HIGH_MULT = 0.95;  // Deliverable work + client time
+        const MED_MULT = 0.70;   // Project support, research, troubleshooting
+        const LOW_MULT = 0.10;   // Pure overhead (admin, planning, estimates)
+
+        // Overtime penalty brackets (applied to hours in each bracket)
+        // Reflects burnout cost, error rates, and sustainability
+        const OVERTIME_PENALTIES = [
+            { min: 40, max: 50, penalty: 0.02 },   // 2%
+            { min: 50, max: 60, penalty: 0.04 },   // 4%
+            { min: 60, max: 70, penalty: 0.06 },   // 6%
+            { min: 70, max: 80, penalty: 0.08 },   // 8%
+            { min: 80, max: Infinity, penalty: 0.10 }  // 10%
+        ];
+
+        // Monthly hours by client: [company, month, hours]
+        const monthlyData = [
+            ["Linkwell Health", "2022-07", 131.8], ["Linkwell Health", "2020-07", 122.8], ["Linkwell Health", "2020-02", 114.3],
+            ["Linkwell Health", "2022-04", 107.8], ["Linkwell Health", "2022-06", 102.0], ["Linkwell Health", "2021-03", 95.0],
+            ["Linkwell Health", "2022-05", 91.0], ["Linkwell Health", "2023-03", 85.8], ["Linkwell Health", "2021-10", 83.5],
+            ["Linkwell Health", "2023-02", 79.0], ["Linkwell Health", "2022-09", 77.3], ["Linkwell Health", "2022-11", 77.0],
+            ["Linkwell Health", "2020-06", 76.8], ["Linkwell Health", "2021-11", 75.5], ["Linkwell Health", "2022-03", 74.5],
+            ["Linkwell Health", "2022-12", 73.8], ["Linkwell Health", "2021-02", 72.3], ["Linkwell Health", "2024-02", 68.3],
+            ["Linkwell Health", "2022-10", 66.5], ["Linkwell Health", "2023-01", 63.5], ["Linkwell Health", "2022-08", 60.8],
+            ["Linkwell Health", "2021-08", 59.8], ["Linkwell Health", "2020-04", 58.3], ["Linkwell Health", "2022-02", 54.8],
+            ["Linkwell Health", "2020-05", 53.5], ["Linkwell Health", "2023-06", 46.0], ["Linkwell Health", "2021-01", 40.0],
+            ["SumerSports", "2023-08", 111.0], ["SumerSports", "2023-10", 95.3], ["SumerSports", "2024-01", 88.5],
+            ["SumerSports", "2023-09", 85.5], ["SumerSports", "2023-12", 76.5], ["SumerSports", "2024-04", 56.0],
+            ["SumerSports", "2023-07", 45.8], ["SumerSports", "2024-05", 42.0],
+            ["Dartmouth College", "2025-08", 84.5], ["Dartmouth College", "2025-07", 78.8], ["Dartmouth College", "2025-09", 75.5],
+            ["Dartmouth College", "2025-05", 65.5], ["Dartmouth College", "2026-09", 61.3], ["Dartmouth College", "2025-04", 54.5],
+            ["Dartmouth College", "2026-07", 54.5], ["Dartmouth College", "2026-08", 51.0], ["Dartmouth College", "2025-10", 40.3],
+            ["Enel NA", "2020-10", 99.3], ["Enel NA", "2026-03", 60.0], ["Enel NA", "2020-11", 57.8], ["Enel NA", "2021-04", 54.5],
+            ["Enel NA", "2021-05", 48.8], ["Enel NA", "2020-09", 47.5], ["Enel NA", "2020-01", 44.3],
+            ["ReflexMD", "2024-08", 116.3], ["ReflexMD", "2024-09", 60.5],
+            ["GiggleFiber", "2025-11", 60.0], ["GiggleFiber", "2026-07", 59.5],
+            ["Cottonball", "2025-06", 81.3], ["Cottonball", "2025-07", 75.8],
+            ["Penn Stater", "2020-12", 62.3], ["Penn Stater", "2020-11", 42.0], ["Penn Stater", "2021-05", 40.3],
+            ["Vicinity Energy", "2021-03", 49.5]
+        ];
+
+        // Calculate overtime penalty for a given hours amount
+        function calcOvertimePenalty(hours) {
+            let penalty = 0;
+            for (const bracket of OVERTIME_PENALTIES) {
+                if (hours > bracket.min) {
+                    const hoursInBracket = Math.min(hours, bracket.max) - bracket.min;
+                    penalty += hoursInBracket * RATE * bracket.penalty;
+                }
+            }
+            return penalty;
+        }
+
+        // Calculate total penalties by client
+        const clientPenalties = {};
+        monthlyData.forEach(([company, month, hours]) => {
+            if (!clientPenalties[company]) clientPenalties[company] = { totalPenalty: 0, overtimeMonths: 0 };
+            const penalty = calcOvertimePenalty(hours);
+            clientPenalties[company].totalPenalty += penalty;
+            if (hours >= 40) clientPenalties[company].overtimeMonths++;
+        });
+
+        // Client data: [company, total_hours, high_hours (billable), med_hours (support), low_hours (overhead)]
+        // HIGH = dev, design, client calls, styling, components, content, JS, HTML, updates, fixes, etc.
+        // MED = QA, testing, bugs, troubleshooting, blank descriptions
+        // LOW = planning, admin, estimates, email, scrum, standups, sync, setup, env, product meetings, docs
+        const clientData = [
+            ["Linkwell Health", 2780.0, 1418.8, 1048.0, 313.3],
+            ["Enel NA", 948.3, 348.0, 539.3, 61.0],
+            ["SumerSports", 879.5, 287.0, 543.5, 49.0],
+            ["Dartmouth College", 818.3, 416.0, 313.3, 89.0],
+            ["GiggleFiber", 349.3, 162.5, 166.8, 20.0],
+            ["Vicinity Energy", 348.3, 183.4, 137.6, 27.3],
+            ["Penn Stater", 290.8, 165.0, 80.0, 45.8],
+            ["ReflexMD", 251.8, 109.3, 135.8, 6.8],
+            ["Columbia University", 221.8, 63.0, 144.8, 14.0],
+            ["Cottonball", 171.3, 67.8, 97.5, 6.0],
+            ["Mental", 127.0, 52.5, 69.3, 5.3],
+            ["Rollworks", 110.3, 49.3, 52.3, 8.8],
+            ["Safewaze", 100.5, 61.3, 34.3, 5.0],
+            ["Non Profit Quarterly", 76.5, 44.3, 27.0, 5.3],
+            ["Gray Associates", 74.8, 31.8, 37.8, 5.3],
+            ["EforAll", 61.0, 15.3, 40.3, 5.5],
+            ["BlueZones", 56.0, 37.3, 15.3, 3.5]
+        ];
+
+        // Project data: [company, project, total_hours, high_hours (billable), med_hours (support), low_hours (overhead)]
+        const projectData = [
+            ["Linkwell", "CHLE Re-Theme", 1025.8, 525.5, 411.0, 89.3],
+            ["SumerSports", "B2C Retainer", 865.0, 282.8, 534.8, 47.5],
+            ["Dartmouth", "D10 & Site Design", 488.8, 249.3, 194.8, 44.8],
+            ["Enel", "DR Calculator", 456.5, 161.3, 268.3, 27.0],
+            ["Linkwell", "Miscellaneous", 454.8, 169.3, 157.0, 128.5],
+            ["Linkwell", "Optum", 430.3, 229.5, 167.5, 33.3],
+            ["GiggleFiber", "Retainer", 349.3, 162.5, 166.8, 20.0],
+            ["Vicinity", "Support Retainer", 348.3, 183.4, 137.6, 27.3],
+            ["Enel", "Retainer", 339.0, 120.8, 186.8, 31.5],
+            ["Penn Stater", "Website", 290.8, 165.0, 80.0, 45.8],
+            ["Linkwell", "B'link Dev/Misc", 286.3, 175.8, 87.0, 23.5],
+            ["Dartmouth", "Monthly Retainer", 226.0, 95.5, 92.3, 38.3],
+            ["Linkwell", "UHC", 215.8, 122.3, 76.3, 17.3],
+            ["ReflexMD", "Content Hub", 185.5, 68.3, 110.5, 6.8],
+            ["Cottonball", "Front-end Dev", 170.5, 67.0, 97.5, 6.0],
+            ["Enel", "EGP Wind Landing", 141.5, 64.5, 74.5, 2.5],
+            ["Mental", "Misc. Support", 127.0, 52.5, 69.3, 5.3],
+            ["Columbia", "Magazine", 99.5, 27.8, 66.3, 5.5],
+            ["Linkwell", "B'link Phase 2", 98.5, 40.8, 53.5, 4.3],
+            ["Linkwell", "America's Best", 93.8, 61.0, 30.5, 2.3],
+            ["Dartmouth", "In Memory", 83.0, 64.0, 14.0, 5.0],
+            ["Linkwell", "HLE Dashboard", 79.5, 54.5, 19.0, 6.0],
+            ["Safewaze", "Website UX/Design", 79.3, 47.3, 27.0, 5.0],
+            ["Gray", "Services Retainer", 74.8, 31.8, 37.8, 5.3],
+            ["Columbia", "FY24 Endowment", 66.3, 13.3, 53.0, 0.0],
+            ["Rollworks", "Buyer Builder", 66.3, 34.3, 28.5, 3.5],
+            ["Linkwell", "Corporate Site", 57.5, 28.8, 21.5, 7.3],
+            ["BlueZones", "Website MVP", 56.0, 37.3, 15.3, 3.5],
+            ["ReflexMD", "Misc. Support", 52.8, 36.0, 16.8, 0.0]
+        ];
+
+        function calcEarnings(total, high, medQA, low) {
+            // Uncategorized hours are treated as medium value
+            const uncategorized = total - high - medQA - low;
+            const med = medQA + uncategorized; // All medium = QA + uncategorized
+            const highEarn = high * RATE * HIGH_MULT;
+            const medEarn = med * RATE * MED_MULT;
+            const lowEarn = low * RATE * LOW_MULT;
+            const theoretical = highEarn + medEarn + lowEarn;
+            const maxPossible = total * RATE;
+            const efficiency = (theoretical / maxPossible) * 100;
+            return { high, med, low, medQA, uncategorized, highEarn, medEarn, lowEarn, theoretical, maxPossible, efficiency };
+        }
+
+        // Process client data with penalties
+        const clients = clientData.map(([name, total, high, medQA, low]) => {
+            const calc = calcEarnings(total, high, medQA, low);
+            const penaltyData = clientPenalties[name] || { totalPenalty: 0, overtimeMonths: 0 };
+            const netEarnings = calc.theoretical - penaltyData.totalPenalty;
+            const netEfficiency = (netEarnings / calc.maxPossible) * 100;
+            return {
+                name, total, ...calc,
+                penalty: penaltyData.totalPenalty,
+                overtimeMonths: penaltyData.overtimeMonths,
+                netEarnings,
+                netEfficiency
+            };
+        }).sort((a, b) => b.netEfficiency - a.netEfficiency);
+
+        // Process project data
+        const projects = projectData.map(([company, project, total, high, medQA, low]) => {
+            const calc = calcEarnings(total, high, medQA, low);
+            return { company, project, total, ...calc };
+        }).sort((a, b) => b.efficiency - a.efficiency);
+
+        // Totals
+        const totals = clients.reduce((acc, c) => ({
+            hours: acc.hours + c.total,
+            highHours: acc.highHours + c.high,
+            medHours: acc.medHours + c.med,
+            lowHours: acc.lowHours + c.low,
+            theoretical: acc.theoretical + c.theoretical,
+            maxPossible: acc.maxPossible + c.maxPossible,
+            penalty: acc.penalty + c.penalty,
+            netEarnings: acc.netEarnings + c.netEarnings,
+            overtimeMonths: acc.overtimeMonths + c.overtimeMonths
+        }), { hours: 0, highHours: 0, medHours: 0, lowHours: 0, theoretical: 0, maxPossible: 0, penalty: 0, netEarnings: 0, overtimeMonths: 0 });
+
+        const overallEfficiency = (totals.theoretical / totals.maxPossible) * 100;
+        const netEfficiency = (totals.netEarnings / totals.maxPossible) * 100;
+        const lostRevenue = totals.maxPossible - totals.netEarnings;
+
+        // Summary stats
+        document.getElementById('summaryStats').innerHTML = `
+            <div class="stat-card">
+                <div class="stat-value blue">${totals.hours.toLocaleString()}</div>
+                <div class="stat-label">Total Hours (2020-2026)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">$${Math.round(totals.netEarnings).toLocaleString()}</div>
+                <div class="stat-label">Net Earnings (after penalty)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value yellow">${netEfficiency.toFixed(0)}%</div>
+                <div class="stat-label">Net Efficiency</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value red">-$${Math.round(totals.penalty).toLocaleString()}</div>
+                <div class="stat-label">Overtime Penalty (${totals.overtimeMonths} months)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value purple">$${Math.round(totals.theoretical).toLocaleString()}</div>
+                <div class="stat-label">Gross (before penalty)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#64748b;">$${Math.round(totals.maxPossible).toLocaleString()}</div>
+                <div class="stat-label">Max Possible (100%)</div>
+            </div>
+        `;
+
+        // Client earnings chart
+        const topClients = clients.slice(0, 12);
+        new Chart(document.getElementById('clientEarningsChart'), {
+            type: 'bar',
+            data: {
+                labels: topClients.map(c => c.name),
+                datasets: [
+                    {
+                        label: 'Billable (95%)',
+                        data: topClients.map(c => Math.round(c.highEarn)),
+                        backgroundColor: '#4ade80',
+                        borderRadius: 2
+                    },
+                    {
+                        label: 'Support (70%)',
+                        data: topClients.map(c => Math.round(c.medEarn)),
+                        backgroundColor: '#fbbf24',
+                        borderRadius: 2
+                    },
+                    {
+                        label: 'Overhead (10%)',
+                        data: topClients.map(c => Math.round(c.lowEarn)),
+                        backgroundColor: '#f87171',
+                        borderRadius: 2
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { color: '#e2e8f0' } }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8', callback: v => '$' + (v/1000).toFixed(0) + 'k' }
+                    },
+                    y: {
+                        stacked: true,
+                        grid: { display: false },
+                        ticks: { color: '#e2e8f0', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+
+        // Efficiency chart (net efficiency after penalties)
+        const sortedByEfficiency = [...clients].sort((a, b) => b.netEfficiency - a.netEfficiency);
+        new Chart(document.getElementById('efficiencyChart'), {
+            type: 'bar',
+            data: {
+                labels: sortedByEfficiency.map(c => c.name),
+                datasets: [{
+                    label: 'Net Efficiency %',
+                    data: sortedByEfficiency.map(c => c.netEfficiency),
+                    backgroundColor: sortedByEfficiency.map(c =>
+                        c.netEfficiency >= 70 ? '#4ade80' :
+                        c.netEfficiency >= 55 ? '#fbbf24' : '#f87171'
+                    ),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: '#334155' },
+                        ticks: { color: '#94a3b8', callback: v => v + '%' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#e2e8f0', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+
+        // Client table
+        const formatMoney = n => '$' + Math.round(n).toLocaleString();
+        const getEfficiencyBadge = e => {
+            if (e >= 70) return '<span class="badge badge-high">' + e.toFixed(0) + '%</span>';
+            if (e >= 55) return '<span class="badge badge-medium">' + e.toFixed(0) + '%</span>';
+            return '<span class="badge badge-low">' + e.toFixed(0) + '%</span>';
+        };
+
+        document.getElementById('clientTable').innerHTML = `
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th class="text-right">Hours</th>
+                    <th class="text-right">High</th>
+                    <th class="text-right">Med</th>
+                    <th class="text-right">Low</th>
+                    <th class="text-right">Gross</th>
+                    <th class="text-right">Penalty</th>
+                    <th class="text-right">Net Earnings</th>
+                    <th class="text-right">Eff.</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${clients.map(c => `
+                    <tr>
+                        <td>${c.name}</td>
+                        <td class="text-right">${c.total.toLocaleString()}</td>
+                        <td class="text-right" style="color:#4ade80;">${c.high.toFixed(0)}</td>
+                        <td class="text-right" style="color:#fbbf24;">${c.med.toFixed(0)}</td>
+                        <td class="text-right" style="color:#f87171;">${c.low.toFixed(0)}</td>
+                        <td class="text-right" style="color:#a78bfa;">${formatMoney(c.theoretical)}</td>
+                        <td class="text-right" style="color:#f87171;">${c.penalty > 0 ? '-' + formatMoney(c.penalty) : '-'}</td>
+                        <td class="text-right" style="font-weight:600;color:#4ade80;">${formatMoney(c.netEarnings)}</td>
+                        <td class="text-right">${getEfficiencyBadge(c.netEfficiency)}</td>
+                    </tr>
+                `).join('')}
+                <tr style="font-weight:700; background:#334155; border-top:2px solid #4ade80;">
+                    <td>TOTAL</td>
+                    <td class="text-right">${totals.hours.toLocaleString()}</td>
+                    <td class="text-right" style="color:#4ade80;">${totals.highHours.toFixed(0)}</td>
+                    <td class="text-right" style="color:#fbbf24;">${totals.medHours.toFixed(0)}</td>
+                    <td class="text-right" style="color:#f87171;">${totals.lowHours.toFixed(0)}</td>
+                    <td class="text-right" style="color:#a78bfa;">${formatMoney(totals.theoretical)}</td>
+                    <td class="text-right" style="color:#f87171;">-${formatMoney(totals.penalty)}</td>
+                    <td class="text-right" style="color:#4ade80;">${formatMoney(totals.netEarnings)}</td>
+                    <td class="text-right">${getEfficiencyBadge(netEfficiency)}</td>
+                </tr>
+            </tbody>
+        `;
+
+        // Project table
+        document.getElementById('projectTable').innerHTML = `
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th class="text-right">Hours</th>
+                    <th class="text-right">High</th>
+                    <th class="text-right">Med</th>
+                    <th class="text-right">Low</th>
+                    <th class="text-right">Earnings</th>
+                    <th class="text-right">Efficiency</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${projects.map(p => `
+                    <tr>
+                        <td>${p.company}</td>
+                        <td>${p.project}</td>
+                        <td class="text-right">${p.total.toLocaleString()}</td>
+                        <td class="text-right" style="color:#4ade80;">${p.high.toFixed(0)}</td>
+                        <td class="text-right" style="color:#fbbf24;">${p.med.toFixed(0)}</td>
+                        <td class="text-right" style="color:#f87171;">${p.low.toFixed(0)}</td>
+                        <td class="text-right" style="font-weight:600;">${formatMoney(p.theoretical)}</td>
+                        <td class="text-right">${getEfficiencyBadge(p.efficiency)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        `;
+    </script>
+</body>
+</html>
