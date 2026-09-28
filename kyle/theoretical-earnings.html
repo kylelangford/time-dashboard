@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Theoretical Earnings Analysis - Kyle Langford</title>
+    <title>Billable Efficiency Analysis - Kyle Langford</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,7 +19,7 @@
         h3 { font-size: 1rem; margin-bottom: 0.75rem; color: #cbd5e1; }
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -73,9 +73,6 @@
         .badge-medium { background: #71410180; color: #fbbf24; }
         .badge-low { background: #7f1d1d80; color: #f87171; }
         .generated { color: #64748b; font-size: 0.75rem; text-align: center; margin-top: 2rem; }
-        .legend { display: flex; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
-        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
         .rate-box {
             background: #334155;
             padding: 1rem;
@@ -86,64 +83,45 @@
             flex-wrap: wrap;
         }
         .rate-item { display: flex; align-items: center; gap: 0.5rem; }
-        .efficiency-bar {
-            height: 8px;
-            background: #334155;
-            border-radius: 4px;
-            overflow: hidden;
-            width: 100px;
-        }
-        .efficiency-fill {
-            height: 100%;
-            border-radius: 4px;
-        }
+        .problem-flag { color: #f87171; font-weight: 600; }
+        .warning-row { background: #7f1d1d40; }
+        .back-link { display: inline-block; color: #38bdf8; text-decoration: none; margin-bottom: 1rem; }
+        .back-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <h1>Theoretical Earnings Analysis</h1>
-    <h2>Kyle Langford | Realization Rate Model (2020-2026)</h2>
+    <a href="../index.html" class="back-link">&larr; Back to Dashboard</a>
+    <h1>Billable Efficiency Analysis</h1>
+    <h2>Kyle Langford | Identifying Problem Clients & Projects (2020-2026)</h2>
     <p style="color:#64748b; margin-bottom:1rem; font-size:0.875rem;">
-        Industry benchmark: 75-85% realization rate for consulting. Overhead should be &lt;15% of hours.
+        Industry benchmark: 75-85% billable efficiency. Projects below 60% need review. Overhead should be &lt;15%.
     </p>
 
     <div class="rate-box">
         <div class="rate-item">
-            <strong>Rate:</strong> $135/hr
+            <span class="badge badge-high">Billable</span> Dev, design, styling, client work
         </div>
         <div class="rate-item">
-            <span class="badge badge-high">Billable</span> 95% (dev, design, styling, client calls)
+            <span class="badge badge-medium">Support</span> QA, testing, bugs, troubleshooting
         </div>
         <div class="rate-item">
-            <span class="badge badge-medium">Support</span> 70% (QA, testing, bugs, troubleshooting)
+            <span class="badge badge-low">Overhead</span> Admin, planning, scrum, standups, setup
         </div>
-        <div class="rate-item">
-            <span class="badge badge-low">Overhead</span> 10% (admin, planning, scrum, standups, setup, env)
-        </div>
-    </div>
-    <div class="rate-box" style="margin-top:0.5rem;">
-        <div class="rate-item">
-            <strong>Overtime Penalty:</strong>
-        </div>
-        <div class="rate-item">40+ hrs: -2%</div>
-        <div class="rate-item">50+ hrs: -4%</div>
-        <div class="rate-item">60+ hrs: -6%</div>
-        <div class="rate-item">70+ hrs: -8%</div>
-        <div class="rate-item">80+ hrs: -10%</div>
     </div>
 
     <div class="stats" id="summaryStats"></div>
 
     <div class="section">
-        <div class="section-title">Earnings by Client</div>
+        <div class="section-title">Efficiency by Client</div>
         <div class="grid-2">
             <div class="card">
-                <h3>Theoretical Earnings by Client</h3>
+                <h3>Hours Breakdown by Client</h3>
                 <div class="chart-container">
-                    <canvas id="clientEarningsChart"></canvas>
+                    <canvas id="clientHoursChart"></canvas>
                 </div>
             </div>
             <div class="card">
-                <h3>Net Efficiency by Client (after penalties)</h3>
+                <h3>Billable Efficiency by Client</h3>
                 <div class="chart-container">
                     <canvas id="efficiencyChart"></canvas>
                 </div>
@@ -159,7 +137,14 @@
     </div>
 
     <div class="section">
-        <div class="section-title">Project Breakdown</div>
+        <div class="section-title">Problem Projects (Below 70% Efficiency)</div>
+        <div class="card card-full">
+            <table id="problemTable"></table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">All Projects</div>
         <div class="card card-full">
             <table id="projectTable"></table>
         </div>
@@ -168,72 +153,12 @@
     <p class="generated">Generated from time tracking data | Kyle Langford</p>
 
     <script>
-        const RATE = 135;
-        const HIGH_MULT = 0.95;  // Deliverable work + client time
-        const MED_MULT = 0.70;   // Project support, research, troubleshooting
-        const LOW_MULT = 0.10;   // Pure overhead (admin, planning, estimates)
-
-        // Overtime penalty brackets (applied to hours in each bracket)
-        // Reflects burnout cost, error rates, and sustainability
-        const OVERTIME_PENALTIES = [
-            { min: 40, max: 50, penalty: 0.02 },   // 2%
-            { min: 50, max: 60, penalty: 0.04 },   // 4%
-            { min: 60, max: 70, penalty: 0.06 },   // 6%
-            { min: 70, max: 80, penalty: 0.08 },   // 8%
-            { min: 80, max: Infinity, penalty: 0.10 }  // 10%
-        ];
-
-        // Monthly hours by client: [company, month, hours]
-        const monthlyData = [
-            ["Linkwell Health", "2022-07", 131.8], ["Linkwell Health", "2020-07", 122.8], ["Linkwell Health", "2020-02", 114.3],
-            ["Linkwell Health", "2022-04", 107.8], ["Linkwell Health", "2022-06", 102.0], ["Linkwell Health", "2021-03", 95.0],
-            ["Linkwell Health", "2022-05", 91.0], ["Linkwell Health", "2023-03", 85.8], ["Linkwell Health", "2021-10", 83.5],
-            ["Linkwell Health", "2023-02", 79.0], ["Linkwell Health", "2022-09", 77.3], ["Linkwell Health", "2022-11", 77.0],
-            ["Linkwell Health", "2020-06", 76.8], ["Linkwell Health", "2021-11", 75.5], ["Linkwell Health", "2022-03", 74.5],
-            ["Linkwell Health", "2022-12", 73.8], ["Linkwell Health", "2021-02", 72.3], ["Linkwell Health", "2024-02", 68.3],
-            ["Linkwell Health", "2022-10", 66.5], ["Linkwell Health", "2023-01", 63.5], ["Linkwell Health", "2022-08", 60.8],
-            ["Linkwell Health", "2021-08", 59.8], ["Linkwell Health", "2020-04", 58.3], ["Linkwell Health", "2022-02", 54.8],
-            ["Linkwell Health", "2020-05", 53.5], ["Linkwell Health", "2023-06", 46.0], ["Linkwell Health", "2021-01", 40.0],
-            ["SumerSports", "2023-08", 111.0], ["SumerSports", "2023-10", 95.3], ["SumerSports", "2024-01", 88.5],
-            ["SumerSports", "2023-09", 85.5], ["SumerSports", "2023-12", 76.5], ["SumerSports", "2024-04", 56.0],
-            ["SumerSports", "2023-07", 45.8], ["SumerSports", "2024-05", 42.0],
-            ["Dartmouth College", "2025-08", 84.5], ["Dartmouth College", "2025-07", 78.8], ["Dartmouth College", "2025-09", 75.5],
-            ["Dartmouth College", "2025-05", 65.5], ["Dartmouth College", "2026-09", 61.3], ["Dartmouth College", "2025-04", 54.5],
-            ["Dartmouth College", "2026-07", 54.5], ["Dartmouth College", "2026-08", 51.0], ["Dartmouth College", "2025-10", 40.3],
-            ["Enel NA", "2020-10", 99.3], ["Enel NA", "2026-03", 60.0], ["Enel NA", "2020-11", 57.8], ["Enel NA", "2021-04", 54.5],
-            ["Enel NA", "2021-05", 48.8], ["Enel NA", "2020-09", 47.5], ["Enel NA", "2020-01", 44.3],
-            ["ReflexMD", "2024-08", 116.3], ["ReflexMD", "2024-09", 60.5],
-            ["GiggleFiber", "2025-11", 60.0], ["GiggleFiber", "2026-07", 59.5],
-            ["Cottonball", "2025-06", 81.3], ["Cottonball", "2025-07", 75.8],
-            ["Penn Stater", "2020-12", 62.3], ["Penn Stater", "2020-11", 42.0], ["Penn Stater", "2021-05", 40.3],
-            ["Vicinity Energy", "2021-03", 49.5]
-        ];
-
-        // Calculate overtime penalty for a given hours amount
-        function calcOvertimePenalty(hours) {
-            let penalty = 0;
-            for (const bracket of OVERTIME_PENALTIES) {
-                if (hours > bracket.min) {
-                    const hoursInBracket = Math.min(hours, bracket.max) - bracket.min;
-                    penalty += hoursInBracket * RATE * bracket.penalty;
-                }
-            }
-            return penalty;
-        }
-
-        // Calculate total penalties by client
-        const clientPenalties = {};
-        monthlyData.forEach(([company, month, hours]) => {
-            if (!clientPenalties[company]) clientPenalties[company] = { totalPenalty: 0, overtimeMonths: 0 };
-            const penalty = calcOvertimePenalty(hours);
-            clientPenalties[company].totalPenalty += penalty;
-            if (hours >= 40) clientPenalties[company].overtimeMonths++;
-        });
+        // Efficiency weights for calculating billable rate
+        const HIGH_WEIGHT = 0.95;  // Billable work
+        const MED_WEIGHT = 0.70;   // Support work
+        const LOW_WEIGHT = 0.10;   // Overhead
 
         // Client data: [company, total_hours, high_hours (billable), med_hours (support), low_hours (overhead)]
-        // HIGH = dev, design, client calls, styling, components, content, JS, HTML, updates, fixes, etc.
-        // MED = QA, testing, bugs, troubleshooting, blank descriptions
-        // LOW = planning, admin, estimates, email, scrum, standups, sync, setup, env, product meetings, docs
         const clientData = [
             ["Linkwell Health", 2780.0, 1418.8, 1048.0, 313.3],
             ["Enel NA", 948.3, 348.0, 539.3, 61.0],
@@ -254,7 +179,7 @@
             ["BlueZones", 56.0, 37.3, 15.3, 3.5]
         ];
 
-        // Project data: [company, project, total_hours, high_hours (billable), med_hours (support), low_hours (overhead)]
+        // Project data: [company, project, total_hours, high_hours, med_hours, low_hours]
         const projectData = [
             ["Linkwell", "CHLE Re-Theme", 1025.8, 525.5, 411.0, 89.3],
             ["SumerSports", "B2C Retainer", 865.0, 282.8, 534.8, 47.5],
@@ -287,56 +212,55 @@
             ["ReflexMD", "Misc. Support", 52.8, 36.0, 16.8, 0.0]
         ];
 
-        function calcEarnings(total, high, medQA, low) {
-            // Uncategorized hours are treated as medium value
+        function calcEfficiency(total, high, medQA, low) {
             const uncategorized = total - high - medQA - low;
-            const med = medQA + uncategorized; // All medium = QA + uncategorized
-            const highEarn = high * RATE * HIGH_MULT;
-            const medEarn = med * RATE * MED_MULT;
-            const lowEarn = low * RATE * LOW_MULT;
-            const theoretical = highEarn + medEarn + lowEarn;
-            const maxPossible = total * RATE;
-            const efficiency = (theoretical / maxPossible) * 100;
-            return { high, med, low, medQA, uncategorized, highEarn, medEarn, lowEarn, theoretical, maxPossible, efficiency };
+            const med = medQA + uncategorized;
+
+            // Calculate weighted efficiency
+            const weightedHours = (high * HIGH_WEIGHT) + (med * MED_WEIGHT) + (low * LOW_WEIGHT);
+            const efficiency = (weightedHours / total) * 100;
+
+            // Calculate percentages
+            const highPct = (high / total) * 100;
+            const medPct = (med / total) * 100;
+            const lowPct = (low / total) * 100;
+
+            return { high, med, low, highPct, medPct, lowPct, efficiency };
         }
 
-        // Process client data with penalties
+        // Process client data
         const clients = clientData.map(([name, total, high, medQA, low]) => {
-            const calc = calcEarnings(total, high, medQA, low);
-            const penaltyData = clientPenalties[name] || { totalPenalty: 0, overtimeMonths: 0 };
-            const netEarnings = calc.theoretical - penaltyData.totalPenalty;
-            const netEfficiency = (netEarnings / calc.maxPossible) * 100;
-            return {
-                name, total, ...calc,
-                penalty: penaltyData.totalPenalty,
-                overtimeMonths: penaltyData.overtimeMonths,
-                netEarnings,
-                netEfficiency
-            };
-        }).sort((a, b) => b.netEfficiency - a.netEfficiency);
+            const calc = calcEfficiency(total, high, medQA, low);
+            return { name, total, ...calc };
+        }).sort((a, b) => a.efficiency - b.efficiency); // Sort worst to best
 
         // Process project data
         const projects = projectData.map(([company, project, total, high, medQA, low]) => {
-            const calc = calcEarnings(total, high, medQA, low);
+            const calc = calcEfficiency(total, high, medQA, low);
             return { company, project, total, ...calc };
-        }).sort((a, b) => b.efficiency - a.efficiency);
+        }).sort((a, b) => a.efficiency - b.efficiency); // Sort worst to best
+
+        // Problem projects (below 70%)
+        const problemProjects = projects.filter(p => p.efficiency < 70);
 
         // Totals
         const totals = clients.reduce((acc, c) => ({
             hours: acc.hours + c.total,
             highHours: acc.highHours + c.high,
             medHours: acc.medHours + c.med,
-            lowHours: acc.lowHours + c.low,
-            theoretical: acc.theoretical + c.theoretical,
-            maxPossible: acc.maxPossible + c.maxPossible,
-            penalty: acc.penalty + c.penalty,
-            netEarnings: acc.netEarnings + c.netEarnings,
-            overtimeMonths: acc.overtimeMonths + c.overtimeMonths
-        }), { hours: 0, highHours: 0, medHours: 0, lowHours: 0, theoretical: 0, maxPossible: 0, penalty: 0, netEarnings: 0, overtimeMonths: 0 });
+            lowHours: acc.lowHours + c.low
+        }), { hours: 0, highHours: 0, medHours: 0, lowHours: 0 });
 
-        const overallEfficiency = (totals.theoretical / totals.maxPossible) * 100;
-        const netEfficiency = (totals.netEarnings / totals.maxPossible) * 100;
-        const lostRevenue = totals.maxPossible - totals.netEarnings;
+        const overallEfficiency = calcEfficiency(
+            totals.hours,
+            totals.highHours,
+            totals.medHours - (totals.hours - totals.highHours - totals.medHours - totals.lowHours),
+            totals.lowHours
+        ).efficiency;
+
+        const highPct = (totals.highHours / totals.hours) * 100;
+        const medPct = (totals.medHours / totals.hours) * 100;
+        const lowPct = (totals.lowHours / totals.hours) * 100;
 
         // Summary stats
         document.getElementById('summaryStats').innerHTML = `
@@ -345,49 +269,49 @@
                 <div class="stat-label">Total Hours (2020-2026)</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value green">$${Math.round(totals.netEarnings).toLocaleString()}</div>
-                <div class="stat-label">Net Earnings (after penalty)</div>
+                <div class="stat-value ${overallEfficiency >= 70 ? 'green' : overallEfficiency >= 60 ? 'yellow' : 'red'}">${overallEfficiency.toFixed(0)}%</div>
+                <div class="stat-label">Overall Efficiency</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value yellow">${netEfficiency.toFixed(0)}%</div>
-                <div class="stat-label">Net Efficiency</div>
+                <div class="stat-value green">${highPct.toFixed(0)}%</div>
+                <div class="stat-label">Billable Hours</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value red">-$${Math.round(totals.penalty).toLocaleString()}</div>
-                <div class="stat-label">Overtime Penalty (${totals.overtimeMonths} months)</div>
+                <div class="stat-value yellow">${medPct.toFixed(0)}%</div>
+                <div class="stat-label">Support Hours</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value purple">$${Math.round(totals.theoretical).toLocaleString()}</div>
-                <div class="stat-label">Gross (before penalty)</div>
+                <div class="stat-value red">${lowPct.toFixed(0)}%</div>
+                <div class="stat-label">Overhead Hours</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" style="color:#64748b;">$${Math.round(totals.maxPossible).toLocaleString()}</div>
-                <div class="stat-label">Max Possible (100%)</div>
+                <div class="stat-value red">${problemProjects.length}</div>
+                <div class="stat-label">Problem Projects (&lt;70%)</div>
             </div>
         `;
 
-        // Client earnings chart
-        const topClients = clients.slice(0, 12);
-        new Chart(document.getElementById('clientEarningsChart'), {
+        // Client hours breakdown chart
+        const topClients = [...clients].sort((a, b) => b.total - a.total).slice(0, 12);
+        new Chart(document.getElementById('clientHoursChart'), {
             type: 'bar',
             data: {
                 labels: topClients.map(c => c.name),
                 datasets: [
                     {
-                        label: 'Billable (95%)',
-                        data: topClients.map(c => Math.round(c.highEarn)),
+                        label: 'Billable %',
+                        data: topClients.map(c => c.highPct),
                         backgroundColor: '#4ade80',
                         borderRadius: 2
                     },
                     {
-                        label: 'Support (70%)',
-                        data: topClients.map(c => Math.round(c.medEarn)),
+                        label: 'Support %',
+                        data: topClients.map(c => c.medPct),
                         backgroundColor: '#fbbf24',
                         borderRadius: 2
                     },
                     {
-                        label: 'Overhead (10%)',
-                        data: topClients.map(c => Math.round(c.lowEarn)),
+                        label: 'Overhead %',
+                        data: topClients.map(c => c.lowPct),
                         backgroundColor: '#f87171',
                         borderRadius: 2
                     }
@@ -403,8 +327,9 @@
                 scales: {
                     x: {
                         stacked: true,
+                        max: 100,
                         grid: { color: '#334155' },
-                        ticks: { color: '#94a3b8', callback: v => '$' + (v/1000).toFixed(0) + 'k' }
+                        ticks: { color: '#94a3b8', callback: v => v + '%' }
                     },
                     y: {
                         stacked: true,
@@ -415,18 +340,17 @@
             }
         });
 
-        // Efficiency chart (net efficiency after penalties)
-        const sortedByEfficiency = [...clients].sort((a, b) => b.netEfficiency - a.netEfficiency);
+        // Efficiency chart (sorted worst to best to highlight problems)
         new Chart(document.getElementById('efficiencyChart'), {
             type: 'bar',
             data: {
-                labels: sortedByEfficiency.map(c => c.name),
+                labels: clients.map(c => c.name),
                 datasets: [{
-                    label: 'Net Efficiency %',
-                    data: sortedByEfficiency.map(c => c.netEfficiency),
-                    backgroundColor: sortedByEfficiency.map(c =>
-                        c.netEfficiency >= 70 ? '#4ade80' :
-                        c.netEfficiency >= 55 ? '#fbbf24' : '#f87171'
+                    label: 'Efficiency %',
+                    data: clients.map(c => c.efficiency),
+                    backgroundColor: clients.map(c =>
+                        c.efficiency >= 70 ? '#4ade80' :
+                        c.efficiency >= 60 ? '#fbbf24' : '#f87171'
                     ),
                     borderRadius: 4
                 }]
@@ -451,80 +375,97 @@
             }
         });
 
-        // Client table
-        const formatMoney = n => '$' + Math.round(n).toLocaleString();
+        // Badge helper
         const getEfficiencyBadge = e => {
             if (e >= 70) return '<span class="badge badge-high">' + e.toFixed(0) + '%</span>';
-            if (e >= 55) return '<span class="badge badge-medium">' + e.toFixed(0) + '%</span>';
+            if (e >= 60) return '<span class="badge badge-medium">' + e.toFixed(0) + '%</span>';
             return '<span class="badge badge-low">' + e.toFixed(0) + '%</span>';
         };
 
+        // Client table (sorted by efficiency, worst first)
         document.getElementById('clientTable').innerHTML = `
             <thead>
                 <tr>
                     <th>Client</th>
                     <th class="text-right">Hours</th>
-                    <th class="text-right">High</th>
-                    <th class="text-right">Med</th>
-                    <th class="text-right">Low</th>
-                    <th class="text-right">Gross</th>
-                    <th class="text-right">Penalty</th>
-                    <th class="text-right">Net Earnings</th>
-                    <th class="text-right">Eff.</th>
+                    <th class="text-right">Billable</th>
+                    <th class="text-right">Support</th>
+                    <th class="text-right">Overhead</th>
+                    <th class="text-right">Efficiency</th>
                 </tr>
             </thead>
             <tbody>
                 ${clients.map(c => `
-                    <tr>
-                        <td>${c.name}</td>
+                    <tr class="${c.efficiency < 60 ? 'warning-row' : ''}">
+                        <td>${c.name} ${c.efficiency < 60 ? '<span class="problem-flag">!</span>' : ''}</td>
                         <td class="text-right">${c.total.toLocaleString()}</td>
-                        <td class="text-right" style="color:#4ade80;">${c.high.toFixed(0)}</td>
-                        <td class="text-right" style="color:#fbbf24;">${c.med.toFixed(0)}</td>
-                        <td class="text-right" style="color:#f87171;">${c.low.toFixed(0)}</td>
-                        <td class="text-right" style="color:#a78bfa;">${formatMoney(c.theoretical)}</td>
-                        <td class="text-right" style="color:#f87171;">${c.penalty > 0 ? '-' + formatMoney(c.penalty) : '-'}</td>
-                        <td class="text-right" style="font-weight:600;color:#4ade80;">${formatMoney(c.netEarnings)}</td>
-                        <td class="text-right">${getEfficiencyBadge(c.netEfficiency)}</td>
+                        <td class="text-right" style="color:#4ade80;">${c.highPct.toFixed(0)}%</td>
+                        <td class="text-right" style="color:#fbbf24;">${c.medPct.toFixed(0)}%</td>
+                        <td class="text-right" style="color:#f87171;">${c.lowPct.toFixed(0)}%</td>
+                        <td class="text-right">${getEfficiencyBadge(c.efficiency)}</td>
                     </tr>
                 `).join('')}
                 <tr style="font-weight:700; background:#334155; border-top:2px solid #4ade80;">
-                    <td>TOTAL</td>
+                    <td>OVERALL</td>
                     <td class="text-right">${totals.hours.toLocaleString()}</td>
-                    <td class="text-right" style="color:#4ade80;">${totals.highHours.toFixed(0)}</td>
-                    <td class="text-right" style="color:#fbbf24;">${totals.medHours.toFixed(0)}</td>
-                    <td class="text-right" style="color:#f87171;">${totals.lowHours.toFixed(0)}</td>
-                    <td class="text-right" style="color:#a78bfa;">${formatMoney(totals.theoretical)}</td>
-                    <td class="text-right" style="color:#f87171;">-${formatMoney(totals.penalty)}</td>
-                    <td class="text-right" style="color:#4ade80;">${formatMoney(totals.netEarnings)}</td>
-                    <td class="text-right">${getEfficiencyBadge(netEfficiency)}</td>
+                    <td class="text-right" style="color:#4ade80;">${highPct.toFixed(0)}%</td>
+                    <td class="text-right" style="color:#fbbf24;">${medPct.toFixed(0)}%</td>
+                    <td class="text-right" style="color:#f87171;">${lowPct.toFixed(0)}%</td>
+                    <td class="text-right">${getEfficiencyBadge(overallEfficiency)}</td>
                 </tr>
             </tbody>
         `;
 
-        // Project table
+        // Problem projects table
+        document.getElementById('problemTable').innerHTML = problemProjects.length ? `
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Project</th>
+                    <th class="text-right">Hours</th>
+                    <th class="text-right">Billable</th>
+                    <th class="text-right">Support</th>
+                    <th class="text-right">Overhead</th>
+                    <th class="text-right">Efficiency</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${problemProjects.map(p => `
+                    <tr class="warning-row">
+                        <td>${p.company}</td>
+                        <td>${p.project} <span class="problem-flag">!</span></td>
+                        <td class="text-right">${p.total.toLocaleString()}</td>
+                        <td class="text-right" style="color:#4ade80;">${p.highPct.toFixed(0)}%</td>
+                        <td class="text-right" style="color:#fbbf24;">${p.medPct.toFixed(0)}%</td>
+                        <td class="text-right" style="color:#f87171;">${p.lowPct.toFixed(0)}%</td>
+                        <td class="text-right">${getEfficiencyBadge(p.efficiency)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        ` : '<tr><td style="color:#4ade80; padding:1rem;">No problem projects found!</td></tr>';
+
+        // All projects table
         document.getElementById('projectTable').innerHTML = `
             <thead>
                 <tr>
                     <th>Client</th>
                     <th>Project</th>
                     <th class="text-right">Hours</th>
-                    <th class="text-right">High</th>
-                    <th class="text-right">Med</th>
-                    <th class="text-right">Low</th>
-                    <th class="text-right">Earnings</th>
+                    <th class="text-right">Billable</th>
+                    <th class="text-right">Support</th>
+                    <th class="text-right">Overhead</th>
                     <th class="text-right">Efficiency</th>
                 </tr>
             </thead>
             <tbody>
                 ${projects.map(p => `
-                    <tr>
+                    <tr class="${p.efficiency < 60 ? 'warning-row' : ''}">
                         <td>${p.company}</td>
-                        <td>${p.project}</td>
+                        <td>${p.project} ${p.efficiency < 60 ? '<span class="problem-flag">!</span>' : ''}</td>
                         <td class="text-right">${p.total.toLocaleString()}</td>
-                        <td class="text-right" style="color:#4ade80;">${p.high.toFixed(0)}</td>
-                        <td class="text-right" style="color:#fbbf24;">${p.med.toFixed(0)}</td>
-                        <td class="text-right" style="color:#f87171;">${p.low.toFixed(0)}</td>
-                        <td class="text-right" style="font-weight:600;">${formatMoney(p.theoretical)}</td>
+                        <td class="text-right" style="color:#4ade80;">${p.highPct.toFixed(0)}%</td>
+                        <td class="text-right" style="color:#fbbf24;">${p.medPct.toFixed(0)}%</td>
+                        <td class="text-right" style="color:#f87171;">${p.lowPct.toFixed(0)}%</td>
                         <td class="text-right">${getEfficiencyBadge(p.efficiency)}</td>
                     </tr>
                 `).join('')}
