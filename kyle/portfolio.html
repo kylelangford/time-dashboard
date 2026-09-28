@@ -27,7 +27,7 @@
         /* Big Stats Row */
         .big-stats {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
             margin: 2rem 0;
         }
@@ -105,14 +105,42 @@
         .skill-name { font-size: 0.875rem; }
         .skill-hours { font-size: 0.75rem; color: #64748b; }
 
-        /* Screenshot */
-        .screenshot-container {
-            margin: 2rem 0;
-        }
-        .screenshot-container img {
-            width: 100%;
-            border-radius: 1rem;
+        /* What I Do cards */
+        .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+        .service-card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
             border: 1px solid #334155;
+        }
+        .service-card h3 { color: #38bdf8; font-size: 1rem; margin-bottom: 0.75rem; }
+        .service-card p { color: #94a3b8; font-size: 0.875rem; line-height: 1.5; }
+        .service-bar { height: 4px; border-radius: 2px; margin-top: 1rem; }
+
+        /* Client grid */
+        .client-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .client-tag {
+            background: #1e293b;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid #334155;
+        }
+        .client-tag-name { color: #f8fafc; font-weight: 600; font-size: 0.9rem; }
+        .client-tag-industry { color: #64748b; font-size: 0.75rem; }
+
+        /* Featured work */
+        .work-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .work-card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+        }
+        .work-card h3 { color: #f8fafc; font-size: 1rem; margin-bottom: 0.75rem; }
+        .work-card p { color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
+
+        @media (max-width: 900px) {
+            .service-grid, .work-grid { grid-template-columns: 1fr; }
         }
 
         /* Ticker */
@@ -145,7 +173,7 @@
         footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.75rem; }
 
         @media (max-width: 1024px) {
-            .big-stats { grid-template-columns: repeat(3, 1fr); }
+            .big-stats { grid-template-columns: repeat(2, 1fr); }
             .grid-4, .industry-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 768px) {
@@ -182,12 +210,7 @@
                 <div class="big-stat-sub">Served</div>
             </div>
             <div class="big-stat">
-                <div class="big-stat-value yellow">175</div>
-                <div class="big-stat-label">Months</div>
-                <div class="big-stat-sub">Active</div>
-            </div>
-            <div class="big-stat">
-                <div class="big-stat-value pink">92</div>
+                <div class="big-stat-value yellow">92</div>
                 <div class="big-stat-label">Avg Hrs/Month</div>
                 <div class="big-stat-sub">Sustained</div>
             </div>
@@ -203,9 +226,97 @@
             <div class="ticker-item"><span class="ticker-value">1,293</span> Hours in 2022</div>
         </div>
 
-        <!-- Portfolio Screenshot -->
-        <div class="screenshot-container">
-            <img src="portfolio-screenshot.png" alt="Portfolio Preview - What I Do, Select Clients, Featured Work">
+        <!-- What I Do -->
+        <div class="section">
+            <div class="section-title">What I Do</div>
+            <div class="service-grid">
+                <div class="service-card">
+                    <h3>Enterprise CMS Development</h3>
+                    <p>Building and maintaining complex Drupal and WordPress sites for enterprise clients. Custom modules, migrations, and performance optimization.</p>
+                    <div class="service-bar" style="background:#4ade80;"></div>
+                </div>
+                <div class="service-card">
+                    <h3>Front-End Architecture</h3>
+                    <p>Component-based development with modern CSS, JavaScript frameworks, and design systems. Responsive, accessible, and performant interfaces.</p>
+                    <div class="service-bar" style="background:#38bdf8;"></div>
+                </div>
+                <div class="service-card">
+                    <h3>Design & UX</h3>
+                    <p>Translating designs into pixel-perfect implementations. Wireframing, prototyping, and collaborating with design teams on user experience.</p>
+                    <div class="service-bar" style="background:#fbbf24;"></div>
+                </div>
+            </div>
+            <div class="service-grid" style="grid-template-columns: 1fr 2fr;">
+                <div class="service-card">
+                    <h3>Platform Migrations</h3>
+                    <p>Migrating legacy systems to modern platforms. Drupal 7 to 10 upgrades, WordPress transitions, and data migration strategies.</p>
+                    <div class="service-bar" style="background:#f472b6;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Clients -->
+        <div class="section">
+            <div class="section-title">Select Clients</div>
+            <div class="client-grid">
+                <div class="client-tag">
+                    <div class="client-tag-name">Dartmouth College</div>
+                    <div class="client-tag-industry">Higher Education</div>
+                </div>
+                <div class="client-tag">
+                    <div class="client-tag-name">Columbia University</div>
+                    <div class="client-tag-industry">Higher Education</div>
+                </div>
+                <div class="client-tag">
+                    <div class="client-tag-name">Enel North America</div>
+                    <div class="client-tag-industry">Energy</div>
+                </div>
+                <div class="client-tag">
+                    <div class="client-tag-name">Linkwell Health</div>
+                    <div class="client-tag-industry">Healthcare</div>
+                </div>
+                <div class="client-tag">
+                    <div class="client-tag-name">Penn Stater Magazine</div>
+                    <div class="client-tag-industry">Publishing</div>
+                </div>
+                <div class="client-tag">
+                    <div class="client-tag-name">Vicinity Energy</div>
+                    <div class="client-tag-industry">Energy</div>
+                </div>
+                <div class="client-tag">
+                    <div class="client-tag-name">GiggleFiber</div>
+                    <div class="client-tag-industry">Telecommunications</div>
+                </div>
+                <div class="client-tag">
+                    <div class="client-tag-name">Gray Associates</div>
+                    <div class="client-tag-industry">Higher Ed Analytics</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured Work -->
+        <div class="section">
+            <div class="section-title">Featured Work</div>
+            <div class="work-grid">
+                <div class="work-card">
+                    <h3>Dartmouth Alumni Magazine</h3>
+                    <p>Drupal 10 migration and redesign for Dartmouth College's flagship alumni publication. Custom content architecture, modern design system, and improved editorial workflows.</p>
+                </div>
+                <div class="work-card">
+                    <h3>Linkwell Health Platform</h3>
+                    <p>Enterprise health content platform serving multiple healthcare brands including UHC and Optum. Custom Drupal development with complex content syndication.</p>
+                </div>
+                <div class="work-card">
+                    <h3>Enel DR Calculator</h3>
+                    <p>Interactive demand response calculator built with Adobe AEM and JavaScript. Complex calculations with real-time results for energy customers.</p>
+                </div>
+            </div>
+            <div class="work-grid" style="grid-template-columns: 1fr 2fr; margin-top: 1rem;">
+                <div class="work-card">
+                    <h3>SumerSports B2C Platform</h3>
+                    <p>WordPress and React-based sports analytics platform. Real-time data visualization, user dashboards, and responsive mobile experience.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Industry Breakdown -->
