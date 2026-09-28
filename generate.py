@@ -197,15 +197,42 @@ def get_yearly_data(conn, person):
 
 
 def get_monthly_aggregate(conn, person):
-    """Get monthly aggregate (all years combined)."""
+    """Get monthly data by year for seasonal comparison."""
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    cur = conn.execute("""
-        SELECT strftime('%m', date) as month, ROUND(SUM(hours), 1) as hours
-        FROM time_entries WHERE person = ?
-        GROUP BY month ORDER BY month
+
+    # Get all years
+    years_cur = conn.execute("""
+        SELECT DISTINCT strftime('%Y', date) as year
+        FROM time_entries WHERE person = ? ORDER BY year
     """, (person,))
-    data = {r[0]: r[1] for r in cur.fetchall()}
-    return [{"month": months[i], "hours": data.get(f"{i+1:02d}", 0)} for i in range(12)]
+    years = [r[0] for r in years_cur.fetchall()]
+
+    # Get monthly data for each year
+    cur = conn.execute("""
+        SELECT strftime('%Y', date) as year, strftime('%m', date) as month,
+               ROUND(SUM(hours), 1) as hours
+        FROM time_entries WHERE person = ?
+        GROUP BY year, month ORDER BY year, month
+    """, (person,))
+
+    # Build data structure: {year: {month: hours}}
+    data = {}
+    for row in cur.fetchall():
+        year, month, hours = row
+        if year not in data:
+            data[year] = {}
+        data[year][month] = hours
+
+    # Return structure for chart: {months: [...], years: {year: [hours per month]}}
+    # Use None instead of 0 for missing data so lines don't drop to zero
+    return {
+        "months": months,
+        "years": years,
+        "data": {
+            year: [data.get(year, {}).get(f"{i+1:02d}") or None for i in range(12)]
+            for year in years
+        }
+    }
 
 
 def get_day_of_week(conn, person):
@@ -380,6 +407,7 @@ def get_category_trends(conn, person):
     # Key categories to track over time
     track_categories = {
         "meetings": ["meeting", "call", "huddle", "standup"],
+        "dev": ["development", "dev ", "coding", "build", "implement", "feature"],
         "qa": ["qa", "test", "bug", "debug"],
         "design": ["design", "wireframe", "mockup", "figma", "sketch"],
         "deploy": ["deploy", "deployment", "launch", "go live"],
@@ -749,16 +777,33 @@ def generate_html(person, data):
             }}
         }});
 
-        // Monthly Chart
+        // Monthly Chart - one line per year (last 3 years visible by default)
+        const yearColors = [
+            '#38bdf8', '#818cf8', '#a78bfa', '#c084fc', '#f472b6', '#fb7185',
+            '#fbbf24', '#4ade80', '#2dd4bf', '#67e8f9', '#f97316', '#84cc16',
+            '#06b6d4', '#8b5cf6', '#ec4899', '#ef4444', '#10b981', '#6366f1'
+        ];
+        const totalYears = data.monthly.years.length;
+        const monthlyDatasets = data.monthly.years.map((year, i) => ({{
+            label: year,
+            data: data.monthly.data[year],
+            borderColor: yearColors[i % yearColors.length],
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            pointRadius: 3,
+            borderWidth: 2,
+            hidden: i < totalYears - 3,
+            spanGaps: false
+        }}));
         new Chart(document.getElementById('monthlyChart'), {{
             type: 'line',
             data: {{
-                labels: data.monthly.map(m => m.month),
-                datasets: [{{ label: 'Hours', data: data.monthly.map(m => m.hours), borderColor: '#818cf8', backgroundColor: 'rgba(129,140,248,0.1)', fill: true, tension: 0.3 }}]
+                labels: data.monthly.months,
+                datasets: monthlyDatasets
             }},
             options: {{
                 responsive: true, maintainAspectRatio: false,
-                plugins: {{ legend: {{ display: false }} }},
+                plugins: {{ legend: {{ position: 'right', labels: {{ color: chartColors.text, boxWidth: 12, font: {{ size: 10 }} }} }} }},
                 scales: {{
                     y: {{ beginAtZero: true, grid: {{ color: chartColors.grid }}, ticks: {{ color: chartColors.text }} }},
                     x: {{ grid: {{ display: false }}, ticks: {{ color: chartColors.text }} }}
@@ -826,6 +871,7 @@ def generate_html(person, data):
                 labels: data.trends.years,
                 datasets: [
                     {{ label: 'Meetings', data: data.trends.meetings, borderColor: '#fb7185', tension: 0.3, pointRadius: 2 }},
+                    {{ label: 'Dev', data: data.trends.dev, borderColor: '#38bdf8', tension: 0.3, pointRadius: 2 }},
                     {{ label: 'QA', data: data.trends.qa, borderColor: '#4ade80', tension: 0.3, pointRadius: 2 }},
                     {{ label: 'Design', data: data.trends.design, borderColor: '#818cf8', tension: 0.3, pointRadius: 2 }},
                     {{ label: 'Deploy', data: data.trends.deploy, borderColor: '#fbbf24', tension: 0.3, pointRadius: 2 }},
