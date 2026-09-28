@@ -109,35 +109,41 @@
     </style>
 </head>
 <body>
+    <a href="../index.html" style="display:inline-block;color:#38bdf8;text-decoration:none;margin-bottom:1rem;">&larr; Back to Dashboard</a>
     <h1>Retainer Utilization Analysis</h1>
-    <h2>Kyle Langford | 6 Year Analysis (2020-2026)</h2>
+    <h2>Kyle Langford | 2 Year Analysis (2025-2026)</h2>
 
     <div class="stats">
         <div class="stat-card">
-            <div class="stat-value blue">422</div>
+            <div class="stat-value blue" id="statTotal">--</div>
             <div class="stat-label">Total Client-Months</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value green">183</div>
-            <div class="stat-label">Months @ 10+ hrs (43%)</div>
+            <div class="stat-value green" id="stat10">--</div>
+            <div class="stat-label" id="stat10Label">Months @ 10+ hrs</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value yellow">127</div>
-            <div class="stat-label">Months @ 20+ hrs (30%)</div>
+            <div class="stat-value yellow" id="stat20">--</div>
+            <div class="stat-label" id="stat20Label">Months @ 20+ hrs</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value purple">65</div>
-            <div class="stat-label">Months @ 40+ hrs (15%)</div>
+            <div class="stat-value" style="color:#f97316;" id="stat30">--</div>
+            <div class="stat-label" id="stat30Label">Months @ 30+ hrs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value purple" id="stat40">--</div>
+            <div class="stat-label" id="stat40Label">Months @ 40+ hrs</div>
         </div>
     </div>
 
     <div class="section">
         <div class="section-title">Retainer Utilization Over Time</div>
         <div class="card card-full">
-            <h3>Number of Clients Hitting 10hr / 20hr / 40hr Thresholds Each Month</h3>
+            <h3>Number of Clients Hitting 10hr / 20hr / 30hr / 40hr Thresholds Each Month</h3>
             <div class="legend">
                 <div class="legend-item"><div class="legend-dot" style="background:#4ade80;"></div> 10+ hours</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div> 20+ hours</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f97316;"></div> 30+ hours</div>
                 <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div> 40+ hours</div>
             </div>
             <div class="chart-container chart-tall">
@@ -186,7 +192,7 @@
     </div>
 
     <div class="section">
-        <div class="section-title">40+ Hours by Technology</div>
+        <div class="section-title">40+ Hours by Technology (All-Time)</div>
         <div class="grid-2">
             <div class="card">
                 <h3>Months Hitting 40+ Hours by CMS</h3>
@@ -276,7 +282,7 @@
     </div>
 
     <div class="section">
-        <div class="section-title">Client Monthly Heatmap (2020-2026)</div>
+        <div class="section-title">Client Monthly Heatmap (2025-2026)</div>
         <div class="card card-full">
             <div class="legend">
                 <div class="legend-item"><div class="legend-dot" style="background:#1e293b;"></div> No hours</div>
@@ -310,7 +316,7 @@
         </div>
     </div>
 
-    <div class="generated">Generated from time-report.db | Analysis: 2020-01 to 2026-09</div>
+    <div class="generated">Generated from time-report.db | Analysis: 2025-01 to 2026-09</div>
 
     <script>
         // Raw monthly data
@@ -337,11 +343,14 @@
             {company:"Roxie Golf, LLC",month:"2026-05",hours:12.3}
         ];
 
-        // Process data
+        // Filter to 2025+ data
+        const data2025 = rawData.filter(d => d.month >= '2025-01');
+
+        // Process data (2025+ only)
         const clientStats = {};
         const monthlyTotals = {};
 
-        rawData.forEach(d => {
+        data2025.forEach(d => {
             // Client stats
             if (!clientStats[d.company]) {
                 clientStats[d.company] = { months: 0, m10: 0, m20: 0, m30: 0, m40: 0, totalHours: 0, monthList: [] };
@@ -356,11 +365,12 @@
 
             // Monthly totals
             if (!monthlyTotals[d.month]) {
-                monthlyTotals[d.month] = { c10: 0, c20: 0, c40: 0, total: 0 };
+                monthlyTotals[d.month] = { c10: 0, c20: 0, c30: 0, c40: 0, total: 0 };
             }
             monthlyTotals[d.month].total++;
             if (d.hours >= 10) monthlyTotals[d.month].c10++;
             if (d.hours >= 20) monthlyTotals[d.month].c20++;
+            if (d.hours >= 30) monthlyTotals[d.month].c30++;
             if (d.hours >= 40) monthlyTotals[d.month].c40++;
         });
 
@@ -376,6 +386,7 @@
                 datasets: [
                     { label: '10+ hrs', data: sortedMonths.map(m => monthlyTotals[m].c10), borderColor: '#4ade80', backgroundColor: '#4ade8020', fill: true, tension: 0.3 },
                     { label: '20+ hrs', data: sortedMonths.map(m => monthlyTotals[m].c20), borderColor: '#fbbf24', backgroundColor: '#fbbf2420', fill: true, tension: 0.3 },
+                    { label: '30+ hrs', data: sortedMonths.map(m => monthlyTotals[m].c30), borderColor: '#f97316', backgroundColor: '#f9731620', fill: true, tension: 0.3 },
                     { label: '40+ hrs', data: sortedMonths.map(m => monthlyTotals[m].c40), borderColor: '#a78bfa', backgroundColor: '#a78bfa20', fill: true, tension: 0.3 }
                 ]
             },
@@ -391,7 +402,7 @@
 
         // Bucket distribution
         const buckets = { '<5': 0, '5-9': 0, '10-19': 0, '20-39': 0, '40-59': 0, '60+': 0 };
-        rawData.forEach(d => {
+        data2025.forEach(d => {
             if (d.hours < 5) buckets['<5']++;
             else if (d.hours < 10) buckets['5-9']++;
             else if (d.hours < 20) buckets['10-19']++;
@@ -420,9 +431,10 @@
         const yearlyAvg = {};
         sortedMonths.forEach(m => {
             const year = m.slice(0, 4);
-            if (!yearlyAvg[year]) yearlyAvg[year] = { c10: [], c20: [], c40: [] };
+            if (!yearlyAvg[year]) yearlyAvg[year] = { c10: [], c20: [], c30: [], c40: [] };
             yearlyAvg[year].c10.push(monthlyTotals[m].c10);
             yearlyAvg[year].c20.push(monthlyTotals[m].c20);
+            yearlyAvg[year].c30.push(monthlyTotals[m].c30);
             yearlyAvg[year].c40.push(monthlyTotals[m].c40);
         });
         const years = Object.keys(yearlyAvg).sort();
@@ -435,6 +447,7 @@
                 datasets: [
                     { label: 'Avg 10+ clients/mo', data: years.map(y => avg(yearlyAvg[y].c10)), backgroundColor: '#4ade80', borderRadius: 4 },
                     { label: 'Avg 20+ clients/mo', data: years.map(y => avg(yearlyAvg[y].c20)), backgroundColor: '#fbbf24', borderRadius: 4 },
+                    { label: 'Avg 30+ clients/mo', data: years.map(y => avg(yearlyAvg[y].c30)), backgroundColor: '#f97316', borderRadius: 4 },
                     { label: 'Avg 40+ clients/mo', data: years.map(y => avg(yearlyAvg[y].c40)), backgroundColor: '#a78bfa', borderRadius: 4 }
                 ]
             },
@@ -557,9 +570,9 @@
             <td class="text-center">${getPattern(c)}</td>
         </tr>`).join('');
 
-        // Heatmap (2020-2026)
-        const heatmapMonths = sortedMonths.filter(m => m >= '2020-01');
-        const heatmapClients = allClients.filter(c => c.monthList.some(m => m.month >= '2020-01')).slice(0, 15);
+        // Heatmap (2025-2026)
+        const heatmapMonths = sortedMonths;
+        const heatmapClients = allClients.slice(0, 15);
 
         function getHeatColor(hours) {
             if (!hours) return '#1e293b';
@@ -607,6 +620,23 @@
         });
         heatmapHTML += '</table>';
         document.getElementById('heatmapContainer').innerHTML = heatmapHTML;
+
+        // Update summary stats
+        const total2025 = data2025.length;
+        const m10 = data2025.filter(d => d.hours >= 10).length;
+        const m20 = data2025.filter(d => d.hours >= 20).length;
+        const m30 = data2025.filter(d => d.hours >= 30).length;
+        const m40 = data2025.filter(d => d.hours >= 40).length;
+
+        document.getElementById('statTotal').textContent = total2025;
+        document.getElementById('stat10').textContent = m10;
+        document.getElementById('stat10Label').textContent = `Months @ 10+ hrs (${Math.round(m10/total2025*100)}%)`;
+        document.getElementById('stat20').textContent = m20;
+        document.getElementById('stat20Label').textContent = `Months @ 20+ hrs (${Math.round(m20/total2025*100)}%)`;
+        document.getElementById('stat30').textContent = m30;
+        document.getElementById('stat30Label').textContent = `Months @ 30+ hrs (${Math.round(m30/total2025*100)}%)`;
+        document.getElementById('stat40').textContent = m40;
+        document.getElementById('stat40Label').textContent = `Months @ 40+ hrs (${Math.round(m40/total2025*100)}%)`;
     </script>
 </body>
 </html>
